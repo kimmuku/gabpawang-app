@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내일은 갑빠왕 — Interactive Prototype</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@font-face { font-family:'Pretendard JP'; font-weight:400; src:url('fonts/PretendardJP-Regular.woff2') format('woff2'); }
+@font-face { font-family:'Pretendard JP'; font-weight:500; src:url('fonts/PretendardJP-Medium.woff2') format('woff2'); }
+@font-face { font-family:'Pretendard JP'; font-weight:600; src:url('fonts/PretendardJP-SemiBold.woff2') format('woff2'); }
+@font-face { font-family:'Pretendard JP'; font-weight:700; src:url('fonts/PretendardJP-Bold.woff2') format('woff2'); }
+
+body {
+  font-family: 'Pretendard JP', -apple-system, sans-serif;
+  background: #080810;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Android phone shell */
+.android-shell {
+  width: 360px;
+  height: 780px;
+  border-radius: 36px;
+  background: #111118;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 0 6px #1a1a24,
+    0 0 0 7px rgba(255,255,255,0.04),
+    0 30px 80px rgba(0,0,0,0.8),
+    0 0 120px rgba(255,196,0,0.05);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Android status bar notch (punch-hole) */
+.android-notch {
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #111118;
+  z-index: 200;
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,0.05);
+}
+
+/* Screen viewport */
+.screen-viewport {
+  position: absolute;
+  inset: 0;
+  border-radius: 36px;
+  overflow: hidden;
+}
+
+/* Android gesture bar */
+.android-gesture-bar {
+  position: absolute;
+  bottom: 10px; left: 50%; transform: translateX(-50%);
+  width: 110px; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,0.18);
+  z-index: 200; pointer-events: none;
+}
+
+/* Slide transition */
+.screen-enter {
+  animation: slideIn 0.28s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+.screen-exit {
+  animation: slideOut 0.28s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideOut {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(-30%); opacity: 0; }
+}
+@keyframes slideInBack {
+  from { transform: translateX(-100%); opacity: 0.6; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Level-up animations */
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1);  opacity: 0.9; }
+  100% { transform: translateY(-320px) scale(0); opacity: 0; }
+}
+@keyframes charPulse {
+  0%,100% { box-shadow: 0 0 40px var(--gc,rgba(255,196,0,0.5)), 0 0 80px var(--gc,rgba(255,196,0,0.2)); }
+  50%      { box-shadow: 0 0 60px var(--gc,rgba(255,196,0,0.7)), 0 0 120px var(--gc,rgba(255,196,0,0.3)); }
+}
+@keyframes charFloat {
+  0%,100% { transform: translateY(0px); }
+  50%     { transform: translateY(-8px); }
+}
+@keyframes splashPop {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* Info panel next to phone */
+.info-panel {
+  width: 280px;
+  padding: 0 0 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-height: 100vh;
+  padding: 40px 24px;
+}
+
+/* Spec overlay */
+.spec-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 300;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─────────────────────────────────────────────────────────
+// SHARED COMPONENTS
+// ─────────────────────────────────────────────────────────
+
+function StatusBar({ dark = false }) {
+  const c = dark ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)';
+  return (
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 24px 0', fontSize:12, fontWeight:700, color:c, position:'absolute', top:0, left:0, right:0, zIndex:100, pointerEvents:'none' }}>
+      <span>9:41</span>
+      <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill={c}><rect x="0" y="5" width="3" height="7" rx="1" opacity="0.4"/><rect x="5" y="3" width="3" height="9" rx="1" opacity="0.6"/><rect x="10" y="0" width="3" height="12" rx="1"/><rect x="14" y="4" width="2" height="5" rx="0.5" opacity="0.35"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill={c}><path d="M8 3C10.2 3 12.2 3.9 13.6 5.4L15 4C13.2 2.1 10.7 1 8 1S2.8 2.1 1 4L2.4 5.4C3.8 3.9 5.8 3 8 3Z" opacity="0.4"/><path d="M8 6C9.4 6 10.6 6.6 11.5 7.5L12.9 6.1C11.6 4.8 9.9 4 8 4S4.4 4.8 3.1 6.1L4.5 7.5C5.4 6.6 6.6 6 8 6Z" opacity="0.7"/><circle cx="8" cy="10" r="1.5"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke={c} strokeOpacity="0.5"/><rect x="23" y="3.5" width="2.5" height="5" rx="1" fill={c} fillOpacity="0.4"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill={c}/></svg>
+      </div>
+    </div>
+  );
+}
+
+function HomeIndicator({ dark = false }) {
+  return <div style={{ position:'absolute', bottom:8, left:'50%', transform:'translateX(-50%)', width:100, height:5, borderRadius:5, background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)', zIndex:100, pointerEvents:'none' }}/>;
+}
+
+const NAV_ITEMS = [
+  { id:'home', label:'홈', icon: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8" strokeLinejoin="round" fill={active?'rgba(255,196,0,0.15)':'none'}/>
+      <path d="M9 22V12h6v10" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )},
+  { id:'record', label:'기록', icon: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="18" height="18" rx="3" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8" fill={active?'rgba(255,196,0,0.15)':'none'}/>
+      <path d="M7 16l3-4 3 3 3-5" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )},
+  { id:'challenge', label:'챌린지', icon: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8" strokeLinejoin="round" fill={active?'rgba(255,196,0,0.15)':'none'}/>
+    </svg>
+  )},
+  { id:'settings', label:'설정', icon: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8"/>
+      <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke={active?'#ffc400':'rgba(255,255,255,0.35)'} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )},
+];
+
+function BottomNav({ active, onNav }) {
+  return (
+    <div style={{ display:'flex', justifyContent:'space-around', alignItems:'center', padding:'10px 0 28px', borderTop:'1px solid rgba(255,255,255,0.06)', background:'rgba(10,10,18,0.98)', backdropFilter:'blur(16px)', position:'absolute', bottom:0, left:0, right:0, zIndex:50 }}>
+      {NAV_ITEMS.map(item => (
+        <button key={item.id} onClick={() => onNav(item.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', padding:'4px 12px' }}>
+          {item.icon(active === item.id)}
+          <span style={{ fontSize:10, fontWeight:600, color: active===item.id ? '#ffc400' : 'rgba(255,255,255,0.3)', letterSpacing:'0.02em' }}>{item.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function GabpaChar({ stage=1, size=100, glow=false, animated=false }) {
+  const palettes = [
+    { body:'#f5a623', stripe:'#c47d0e', belly:'#fde9c0', eye:'#3d2b1f', nose:'#c0392b' },
+    { body:'#f0961e', stripe:'#b8690a', belly:'#fcddb0', eye:'#2c1f16', nose:'#b03025' },
+    { body:'#e8840f', stripe:'#a85c08', belly:'#fbd0a0', eye:'#231810', nose:'#a02820' },
+    { body:'#d9720a', stripe:'#984e06', belly:'#f9c490', eye:'#1a1008', nose:'#902018' },
+    { body:'#c86008', stripe:'#883e04', belly:'#f7b880', eye:'#120b06', nose:'#801810' },
+    { body:'#b84e06', stripe:'#783004', belly:'#f5ac70', eye:'#0c0804', nose:'#700810' },
+    { body:'#a83c04', stripe:'#682002', belly:'#f3a060', eye:'#080402', nose:'#600008' },
+    { body:'#982a02', stripe:'#581002', belly:'#f19450', eye:'#040200', nose:'#500008' },
+    { body:'#881800', stripe:'#480000', belly:'#ef8840', eye:'#020000', nose:'#400000' },
+  ];
+  const p = palettes[Math.min(stage-1,8)];
+  const m = 0.75 + (stage/9)*0.5;
+  const headR = 17 + stage*0.35;
+  const bodyW = 20*m, armW = 6+stage*0.65, legW = 7+stage*0.55;
+  const gc = stage>=7 ? '#ff8800' : p.body;
+  return (
+    <div style={{ width:size, height:size*1.15, position:'relative', flexShrink:0,
+      filter: glow ? `drop-shadow(0 0 ${size*0.12}px ${gc}90) drop-shadow(0 0 ${size*0.28}px ${gc}40)` : 'none',
+      animation: animated ? 'charFloat 3s ease-in-out infinite' : 'none' }}>
+      <svg width={size} height={size*1.15} viewBox="0 0 100 115" fill="none" style={{ overflow:'visible' }}>
+        <ellipse cx="50" cy="112" rx={13*m} ry="3.5" fill="rgba(0,0,0,0.25)"/>
+        <path d={`M${50+bodyW-4} 84 Q${50+bodyW+18} 74 ${50+bodyW+13} 60`} stroke={p.body} strokeWidth="6" strokeLinecap="round" fill="none"/>
+        <path d={`M${50+bodyW-4} 84 Q${50+bodyW+18} 74 ${50+bodyW+13} 60`} stroke={p.stripe} strokeWidth="2.5" strokeLinecap="round" strokeDasharray="5 4" fill="none"/>
+        <ellipse cx={50-legW+2} cy={89} rx={legW*0.7} ry={legW*0.9} fill={p.body}/>
+        <ellipse cx={50+legW-2} cy={89} rx={legW*0.7} ry={legW*0.9} fill={p.body}/>
+        <ellipse cx={50-legW+1} cy={96} rx={legW*0.85} ry={3.5} fill={p.stripe}/>
+        <ellipse cx={50+legW-1} cy={96} rx={legW*0.85} ry={3.5} fill={p.stripe}/>
+        {[-3,-1,1].map(dx=><line key={dx} x1={50-legW+1+dx} y1={96} x2={50-legW+1+dx} y2={99} stroke="rgba(0,0,0,0.3)" strokeWidth="1" strokeLinecap="round"/>)}
+        {[-3,-1,1].map(dx=><line key={dx+'r'} x1={50+legW-1+dx} y1={96} x2={50+legW-1+dx} y2={99} stroke="rgba(0,0,0,0.3)" strokeWidth="1" strokeLinecap="round"/>)}
+        <ellipse cx="50" cy="71" rx={bodyW} ry={bodyW*0.75} fill={p.body}/>
+        <ellipse cx="50" cy="73" rx={bodyW*0.55} ry={bodyW*0.6} fill={p.belly}/>
+        <path d={`M${50-bodyW*0.8} 64 Q50 61 ${50+bodyW*0.8} 64`} stroke={p.stripe} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+        <path d={`M${50-bodyW*0.7} 71 Q50 68 ${50+bodyW*0.7} 71`} stroke={p.stripe} strokeWidth="2" fill="none" strokeLinecap="round"/>
+        {stage>=5&&[0,1].map(i=><path key={i} d={`M${50-bodyW*0.3} ${66+i*6} Q50 ${64+i*6} ${50+bodyW*0.3} ${66+i*6}`} stroke="rgba(0,0,0,0.1)" strokeWidth="1.5" fill="none"/>)}
+        <ellipse cx={50-bodyW+2} cy={73} rx={armW*0.6} ry={armW*1.3} fill={p.body} transform={`rotate(-15 ${50-bodyW+2} 73)`}/>
+        <ellipse cx={50-bodyW} cy={81} rx={armW*0.8} ry={armW*0.5} fill={p.stripe}/>
+        <ellipse cx={50+bodyW-2} cy={73} rx={armW*0.6} ry={armW*1.3} fill={p.body} transform={`rotate(15 ${50+bodyW-2} 73)`}/>
+        <ellipse cx={50+bodyW} cy={81} rx={armW*0.8} ry={armW*0.5} fill={p.stripe}/>
+        <ellipse cx="50" cy="52" rx={9*m} ry="7" fill={p.body}/>
+        <ellipse cx="50" cy="37" rx={headR} ry={headR*0.92} fill={p.body}/>
+        <ellipse cx={50-headR*0.5} cy={41} rx={headR*0.35} ry={headR*0.28} fill={p.belly}/>
+        <ellipse cx={50+headR*0.5} cy={41} rx={headR*0.35} ry={headR*0.28} fill={p.belly}/>
+        <path d="M50 21 L50 29" stroke={p.stripe} strokeWidth="2" strokeLinecap="round"/>
+        <path d="M44 23 L42 29" stroke={p.stripe} strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M56 23 L58 29" stroke={p.stripe} strokeWidth="1.5" strokeLinecap="round"/>
+        {stage>=6&&<><path d={`M${50-headR*0.55} 30 L${50-headR*0.15} 32`} stroke={p.stripe} strokeWidth="2" strokeLinecap="round"/><path d={`M${50+headR*0.55} 30 L${50+headR*0.15} 32`} stroke={p.stripe} strokeWidth="2" strokeLinecap="round"/></>}
+        <ellipse cx={50-headR*0.35} cy={35} rx="3.5" ry="3.8" fill={p.eye}/>
+        <ellipse cx={50+headR*0.35} cy={35} rx="3.5" ry="3.8" fill={p.eye}/>
+        <ellipse cx={50-headR*0.35+1.2} cy={33.5} rx="1.2" ry="1.2" fill="white"/>
+        <ellipse cx={50+headR*0.35+1.2} cy={33.5} rx="1.2" ry="1.2" fill="white"/>
+        <ellipse cx="50" cy="40" rx="3.5" ry="2.5" fill={p.nose}/>
+        <line x1={50-headR*0.3} y1={42} x2={50-headR*0.9} y2={41} stroke="rgba(255,255,255,0.5)" strokeWidth="0.8"/>
+        <line x1={50-headR*0.3} y1={43.5} x2={50-headR*0.9} y2={44} stroke="rgba(255,255,255,0.5)" strokeWidth="0.8"/>
+        <line x1={50+headR*0.3} y1={42} x2={50+headR*0.9} y2={41} stroke="rgba(255,255,255,0.5)" strokeWidth="0.8"/>
+        <line x1={50+headR*0.3} y1={43.5} x2={50+headR*0.9} y2={44} stroke="rgba(255,255,255,0.5)" strokeWidth="0.8"/>
+        <path d={stage>=5?`M47 45 Q50 49 53 45`:`M48 45 Q50 47.5 52 45`} stroke={p.stripe} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+        {stage>=6&&<><polygon points="48.5,45 50,48.5 49.5,45" fill="white" opacity="0.9"/><polygon points="51.5,45 50,48.5 50.5,45" fill="white" opacity="0.9"/></>}
+        <polygon points={`${50-headR+2},${37-headR*0.5} ${50-headR*0.6},${37-headR*1.1} ${50-headR*0.3},${37-headR*0.3}`} fill={p.body}/>
+        <polygon points={`${50-headR+4},${37-headR*0.45} ${50-headR*0.65},${37-headR*0.95} ${50-headR*0.4},${37-headR*0.3}`} fill={p.nose} opacity="0.7"/>
+        <polygon points={`${50+headR-2},${37-headR*0.5} ${50+headR*0.6},${37-headR*1.1} ${50+headR*0.3},${37-headR*0.3}`} fill={p.body}/>
+        <polygon points={`${50+headR-4},${37-headR*0.45} ${50+headR*0.65},${37-headR*0.95} ${50+headR*0.4},${37-headR*0.3}`} fill={p.nose} opacity="0.7"/>
+        {stage>=7&&<g><polygon points={`50,${37-headR*1.35} 53,${37-headR*1.1} 56,${37-headR*1.4} 58,${37-headR*1.05} 50,${37-headR*0.9} 42,${37-headR*1.05} 44,${37-headR*1.4} 47,${37-headR*1.1}`} fill="#ffc400" opacity="0.95"/><circle cx="50" cy={37-headR*1.35} r="1.5" fill="white" opacity="0.9"/><circle cx="56" cy={37-headR*1.38} r="1" fill="white" opacity="0.8"/><circle cx="44" cy={37-headR*1.38} r="1" fill="white" opacity="0.8"/></g>}
+        {stage===9&&<ellipse cx="50" cy="58" rx="42" ry="54" stroke="#ffc400" strokeWidth="1.5" strokeDasharray="5 4" opacity="0.25" fill="none"/>}
+      </svg>
+    </div>
+  );
+}
+
+function BtnPrimary({ children, onClick, color='#ffc400', textColor='#000', disabled=false, style={} }) {
+  return <button onClick={onClick} disabled={disabled} style={{ width:'100%', padding:'17px 20px', background: disabled?'rgba(255,255,255,0.1)':`linear-gradient(135deg,${color},${color}cc)`, borderRadius:16, fontSize:16, fontWeight:800, color: disabled?'rgba(255,255,255,0.3)':textColor, border:'none', cursor: disabled?'not-allowed':'pointer', letterSpacing:'-0.01em', boxShadow: disabled?'none':`0 4px 20px ${color}40`, transition:'all 0.15s', ...style }}>{children}</button>;
+}
+
+function BtnGhost({ children, onClick, style={} }) {
+  return <button onClick={onClick} style={{ width:'100%', padding:'15px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.15)', borderRadius:16, fontSize:15, fontWeight:600, color:'rgba(255,255,255,0.55)', cursor:'pointer', ...style }}>{children}</button>;
+}
+
+function InputField({ label, placeholder, type='text', value, onChange }) {
+  return (
+    <div style={{ marginBottom:14 }}>
+      <div style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>{label}</div>
+      <input type={type} placeholder={placeholder} value={value} onChange={e=>onChange(e.target.value)} style={{ width:'100%', padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:12, fontSize:15, color:'#fff', fontFamily:'inherit', outline:'none' }}/>
+    </div>
+  );
+}
+
+function ProgressBar({ value, max, color='#ffc400', height=6, extra=0, extraColor='#ff8c00' }) {
+  const base = Math.max(0, value - extra);
+  const basePct = Math.min(100, (base/max)*100);
+  const extraPct = Math.min(100 - basePct, (extra/max)*100);
+  return (
+    <div style={{ height, background:'rgba(255,255,255,0.08)', borderRadius:height, display:'flex', overflow:'hidden' }}>
+      <div style={{ height:'100%', width:`${basePct}%`, background:`linear-gradient(90deg,${color},${color}bb)`, transition:'width 0.5s ease' }}/>
+      {extra > 0 && <div style={{ height:'100%', width:`${extraPct}%`, background:`linear-gradient(90deg,${extraColor},#ffe066)`, boxShadow:`0 0 10px ${extraColor}`, transition:'width 0.5s ease' }}/>}
+    </div>
+  );
+}
+
+
+/* ══════════════════════════════════════
+   ONBOARDING SCREENS
+══════════════════════════════════════ */
+function ScreenSplash({ onNext }) {
+  useEffect(() => { const t = setTimeout(onNext, 1800); return () => clearTimeout(t); }, []);
+  return (
+    <div style={{ width:'100%', height:'100%', background:'radial-gradient(ellipse 100% 80% at 50% 40%, rgba(255,196,0,0.18) 0%, transparent 65%), #0a0a12', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ animation:'splashPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
+        <GabpaChar stage={7} size={100} glow />
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontSize:32, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.1 }}>내일은<br/><span style={{ color:'#ffc400' }}>갑빠왕</span></div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginTop:8, letterSpacing:'0.05em' }}>PUSH YOUR LIMITS</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const ONBOARDING_SLIDES = [
+  { bg:'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(255,196,0,0.2) 0%, transparent 70%)', stage:7, title:'폰만 세워두면\n자동으로 카운트', desc:'운동만 하세요. 저희가 세어드릴게요.', accent:'#ffc400' },
+  { bg:'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,195,255,0.15) 0%, transparent 70%)', stage:5, title:'푸쉬업을 하고\n캐릭터를 성장시켜보세요', desc:'운동할수록 내 캐릭터가 강해집니다.', accent:'#00c3ff' },
+  { bg:'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(168,85,247,0.15) 0%, transparent 70%)', stage:9, title:'데이터로 나의\n성장을 기록', desc:'내가 얼마나 강해졌는지 확인하세요.', accent:'#a855f7' },
+];
+
+function ScreenOnboarding({ onNext }) {
+  const [slide, setSlide] = useState(0);
+  const s = ONBOARDING_SLIDES[slide];
+  return (
+    <div style={{ width:'100%', height:'100%', background:`${s.bg}, #0a0a12`, display:'flex', flexDirection:'column', transition:'background 0.4s ease' }}>
+      <StatusBar />
+      <div style={{ display:'flex', justifyContent:'flex-end', padding:'52px 20px 0' }}>
+        <button onClick={onNext} style={{ background:'rgba(255,255,255,0.07)', border:'none', borderRadius:20, padding:'6px 14px', fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.4)', cursor:'pointer' }}>건너뛰기</button>
+      </div>
+      <div style={{ display:'flex', justifyContent:'center', padding:'20px 0 16px' }}>
+        <GabpaChar stage={s.stage} size={130} glow animated />
+      </div>
+      <div style={{ flex:1, padding:'0 32px' }}>
+        <div style={{ fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.2, marginBottom:12, whiteSpace:'pre-line' }}>{s.title}</div>
+        <div style={{ fontSize:15, color:'rgba(255,255,255,0.5)', lineHeight:1.65, whiteSpace:'pre-line' }}>{s.desc}</div>
+      </div>
+      <div style={{ padding:'0 24px 48px' }}>
+        <div style={{ display:'flex', justifyContent:'center', gap:6, marginBottom:24 }}>
+          {ONBOARDING_SLIDES.map((_,i) => <div key={i} onClick={() => setSlide(i)} style={{ width:i===slide?24:6, height:6, borderRadius:3, background:i===slide?s.accent:'rgba(255,255,255,0.15)', transition:'all 0.3s', cursor:'pointer' }}/>)}
+        </div>
+        {slide < 2 ? <BtnPrimary color={s.accent} onClick={() => setSlide(i=>i+1)}>다음 →</BtnPrimary> : <BtnPrimary onClick={onNext}>시작하기 🚀</BtnPrimary>}
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenSignup({ onNext }) {
+  const [showGuest, setShowGuest] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
+  const [pw, setPw] = useState('');
+  const [showEmail, setShowEmail] = useState(false);
+  const SocialBtn = ({ bg, border, color, icon, label, onClick }) => (
+    <button onClick={onClick} style={{ width:'100%', padding:'14px 16px', borderRadius:14, background:bg, border:`1.5px solid ${border}`, display:'flex', alignItems:'center', gap:12, fontSize:15, fontWeight:700, color, cursor:'pointer' }}>
+      <div style={{ width:24, height:24, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>{icon}</div>
+      <span style={{ flex:1, textAlign:'center', marginRight:24 }}>{label}</span>
+    </button>
+  );
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      <StatusBar />
+      <div style={{ padding:'56px 24px 32px', flex:1 }}>
+        <div style={{ marginBottom:28 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'0.18em', color:'rgba(255,255,255,0.3)', marginBottom:8 }}>STEP 1 OF 1</div>
+          <div style={{ fontSize:26, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', marginBottom:4 }}>계정 만들기</div>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.4)' }}>기록은 클라우드에 안전하게 저장됩니다.</div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:16 }}>
+          <SocialBtn bg="rgba(255,255,255,0.07)" border="rgba(255,255,255,0.12)" color="#fff" onClick={onNext}
+            icon={<svg viewBox="0 0 24 24" width="22" height="22"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>}
+            label="Google로 계속하기"/>
+          <SocialBtn bg="rgba(254,229,0,0.12)" border="rgba(254,229,0,0.3)" color="#f9e000" onClick={onNext}
+            icon={<svg viewBox="0 0 24 24" width="22" height="22" fill="#f9e000"><path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.73 1.67 5.13 4.19 6.57L5.1 21l4.44-2.33c.8.18 1.62.27 2.46.27 5.52 0 10-3.48 10-7.94C22 6.48 17.52 3 12 3z"/></svg>}
+            label="카카오로 계속하기"/>
+          <SocialBtn bg="rgba(3,199,90,0.1)" border="rgba(3,199,90,0.25)" color="#03c75a" onClick={onNext}
+            icon={<svg viewBox="0 0 24 24" width="22" height="22" fill="#03c75a"><path d="M16.273 12.845L7.376 3H3v18h7.727V11.155L19.624 21H24V3h-7.727z"/></svg>}
+            label="네이버로 계속하기"/>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:showEmail?16:20 }}>
+          <div style={{ flex:1, height:1, background:'rgba(255,255,255,0.07)'}}/>
+          <button onClick={() => setShowEmail(v=>!v)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'rgba(255,255,255,0.3)', fontWeight:600, whiteSpace:'nowrap' }}>이메일로 가입 {showEmail?'▲':'▼'}</button>
+          <div style={{ flex:1, height:1, background:'rgba(255,255,255,0.07)'}}/>
+        </div>
+        {showEmail && <div style={{ marginBottom:16 }}>
+          <InputField label="닉네임" placeholder="갑빠지망생" value={nickname} onChange={setNickname}/>
+          <InputField label="이메일" placeholder="gabba@gmail.com" type="email" value={email} onChange={setEmail}/>
+          <InputField label="비밀번호" placeholder="8자 이상" type="password" value={pw} onChange={setPw}/>
+          <BtnPrimary onClick={onNext} disabled={!nickname||!email} style={{ marginBottom:12 }}>가입하고 시작 →</BtnPrimary>
+        </div>}
+        <div style={{ background:'rgba(0,195,255,0.06)', border:'1px solid rgba(0,195,255,0.15)', borderRadius:10, padding:'10px 12px', marginBottom:16 }}>
+          <div style={{ fontSize:11, color:'rgba(0,195,255,0.8)', fontWeight:600, marginBottom:2 }}>🔒 카메라 영상은 기기에서만 처리됩니다</div>
+          <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', lineHeight:1.5 }}>영상은 절대 서버로 전송되지 않으며, 운동 통계 데이터만 암호화하여 저장합니다.</div>
+        </div>
+        <button onClick={() => setShowGuest(true)} style={{ width:'100%', padding:'14px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:14, fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.4)', cursor:'pointer' }}>게스트로 시작하기</button>
+      </div>
+      {showGuest && (
+        <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(8px)', display:'flex', alignItems:'flex-end', zIndex:200 }}>
+          <div style={{ width:'100%', background:'#1a1a26', borderRadius:'24px 24px 0 0', padding:'28px 24px 44px', border:'1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize:28, textAlign:'center', marginBottom:12 }}>⚠️</div>
+            <div style={{ fontSize:18, fontWeight:900, color:'#fff', textAlign:'center', letterSpacing:'-0.02em', marginBottom:10 }}>게스트 모드 주의사항</div>
+            <div style={{ background:'rgba(255,100,0,0.08)', border:'1px solid rgba(255,100,0,0.2)', borderRadius:12, padding:'12px 14px', marginBottom:20 }}>
+              <div style={{ fontSize:13, color:'rgba(255,150,50,0.9)', fontWeight:700, marginBottom:6 }}>앱을 삭제하면 모든 기록이 영구 삭제됩니다</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.45)', lineHeight:1.6 }}>게스트 모드에서는 운동 기록이 이 기기에만 저장돼요. 앱을 지웠다가 다시 설치하거나 다른 기기로 옮기면 <span style={{ color:'#ff9632', fontWeight:700 }}>모든 운동 기록과 캐릭터 성장이 사라집니다.</span></div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <BtnPrimary onClick={() => { setShowGuest(false); onNext(); }} color="#ff6320" textColor="#fff">그래도 게스트로 시작할게요</BtnPrimary>
+              <BtnGhost onClick={() => setShowGuest(false)}>계정 만들기로 돌아가기</BtnGhost>
+            </div>
+          </div>
+        </div>
+      )}
+      <HomeIndicator />
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   WORKOUT SCREENS
+══════════════════════════════════════ */
+function ScreenHome({ onNav, onStartWorkout, onNotif, onCharacter, onStatClick, charStage=3, totalPushups=847, streak=12 }) {
+  const nextStageAt = [0,100,500,2000,5000,10000,25000,50000,100000];
+  const cur = nextStageAt[charStage-1]||0;
+  const next = nextStageAt[charStage]||100000;
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'52px 20px 0' }}>
+        <div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', fontWeight:500 }}>안녕하세요 👋</div>
+          <div style={{ fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-0.02em' }}><span style={{ color:'#ffc400' }}>갑빠지망생</span>님</div>
+        </div>
+        <button onClick={onNotif} style={{ width:40, height:40, borderRadius:'50%', background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, position:'relative' }}>
+          🔔
+          <div style={{ position:'absolute', top:8, right:8, width:7, height:7, borderRadius:'50%', background:'#ff6060', border:'2px solid #0a0a12' }}/>
+        </button>
+      </div>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 24px', gap:12, background:'radial-gradient(ellipse 70% 60% at 50% 55%, rgba(255,196,0,0.08) 0%, transparent 70%)' }}>
+        {/* 캐릭터 */}
+        <div onClick={onCharacter} style={{ cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
+          <GabpaChar stage={charStage} size={140} glow animated />
+          <div style={{ fontSize:14, color:'rgba(255,196,0,0.8)', fontWeight:700 }}>보통 운동인</div>
+        </div>
+        {/* 진화 진행바 */}
+        <div style={{ width:'100%' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:8 }}>
+            <span>{charStage}단계</span>
+            <span style={{ color:'#ffc400', fontWeight:800, fontSize:13 }}>레벨 업까지 {(next-totalPushups).toLocaleString()}개 남음</span>
+            <span>{charStage+1}단계 🔒</span>
+          </div>
+          <div style={{ height:8, background:'rgba(255,255,255,0.08)', borderRadius:8, overflow:'hidden' }}>
+            <div style={{ height:'100%', width:`${Math.min(100,((totalPushups-cur)/(next-cur))*100)}%`, background:'linear-gradient(90deg,#ffc400,#ff8c00)', borderRadius:8 }}/>
+          </div>
+        </div>
+        {/* 스탯 */}
+        <div style={{ display:'flex', gap:8, width:'100%' }}>
+          {[
+            { val:'42개', lbl:'1회 최고기록', color:'#ffc400', tab:'1rm' },
+            { val:totalPushups.toLocaleString(), lbl:'누적 횟수', color:'#fff', tab:'stats' },
+            { val:`${streak}🔥`, lbl:'연속 운동일', color:'#fff', tab:'calendar' },
+          ].map((s,i)=>(
+            <button key={i} onClick={() => onStatClick && onStatClick(s.tab)} style={{ flex:1, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 6px', textAlign:'center', cursor:'pointer', font:'inherit', color:'inherit', transition:'all 0.15s' }} onMouseDown={e=>e.currentTarget.style.transform='scale(0.96)'} onMouseUp={e=>e.currentTarget.style.transform=''} onMouseLeave={e=>e.currentTarget.style.transform=''}>
+              <div style={{ fontSize:19, fontWeight:900, color:s.color, letterSpacing:'-0.02em' }}>{s.val}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:4, fontWeight:600 }}>{s.lbl}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding:'0 20px 100px' }}>
+        <BtnPrimary onClick={onStartWorkout}>운동 시작 💪</BtnPrimary>
+      </div>
+      <BottomNav active="home" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenWorkoutStart({ onBack, onStart }) {
+  const [mode, setMode] = useState('free');
+  const [targetCount, setTargetCount] = useState([30,25,20]);
+  const [targetSets, setTargetSets] = useState(3);
+  const modes = [
+    { id:'free', icon:'🔥', title:'자유 모드', desc:'시작하고 원할 때 끝내기' },
+    { id:'target', icon:'🎯', title:'목표 모드', desc:'목표 개수 / 세트 설정' },
+    { id:'challenge', icon:'💯', title:'챌린지 모드', desc:'100개 무휴식 도전' },
+  ];
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ display:'flex', alignItems:'center', gap:12, padding:'52px 20px 16px' }}>
+        <button onClick={onBack} style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer', fontSize:18, color:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center' }}>←</button>
+        <div>
+          <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:'-0.02em' }}>운동 시작</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.35)', marginTop:1 }}>모드를 선택하세요</div>
+        </div>
+      </div>
+      <div style={{ flex:1, overflowY:'auto', padding:'0 20px 20px' }}>
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', marginBottom:10 }}>운동 모드</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {modes.map(m=>(
+              <button key={m.id} onClick={() => setMode(m.id)} style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px', borderRadius:16, background:mode===m.id?'rgba(255,196,0,0.1)':'rgba(255,255,255,0.04)', border:`1.5px solid ${mode===m.id?'#ffc400':'rgba(255,255,255,0.08)'}`, cursor:'pointer', textAlign:'left', width:'100%' }}>
+                <div style={{ width:44, height:44, borderRadius:12, background:mode===m.id?'rgba(255,196,0,0.15)':'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>{m.icon}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:15, fontWeight:800, color:mode===m.id?'#ffc400':'#fff' }}>{m.title}</div>
+                  <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', marginTop:2 }}>{m.desc}</div>
+                </div>
+                <div style={{ width:20, height:20, borderRadius:'50%', border:`2px solid ${mode===m.id?'#ffc400':'rgba(255,255,255,0.2)'}`, background:mode===m.id?'#ffc400':'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  {mode===m.id&&<div style={{ width:8, height:8, borderRadius:'50%', background:'#000' }}/>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+        {mode==='target'&&(
+          <div style={{ background:'rgba(255,196,0,0.06)', border:'1px solid rgba(255,196,0,0.15)', borderRadius:16, padding:'16px', marginBottom:20 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#ffc400', marginBottom:14 }}>세트별 목표 횟수 설정</div>
+            <div style={{ marginBottom:12 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:8 }}>
+                <span style={{ fontSize:13, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>세트 수</span>
+                <span style={{ fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>{targetSets}세트</span>
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                {[1,2,3,4,5].map(n=><button key={n} onClick={()=>setTargetSets(n)} style={{ flex:1, padding:'10px 0', borderRadius:10, background:targetSets===n?'#ffc400':'rgba(255,255,255,0.06)', border:'none', cursor:'pointer', fontSize:14, fontWeight:800, color:targetSets===n?'#000':'rgba(255,255,255,0.4)' }}>{n}</button>)}
+              </div>
+            </div>
+            {Array.from({length:targetSets},(_,i)=>(
+              <div key={i} style={{ marginBottom:10 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
+                  <span style={{ fontSize:13, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>{i+1}세트 목표</span>
+                  <span style={{ fontSize:20, fontWeight:900, color:'#ffc400', letterSpacing:'-0.03em' }}>{targetCount[i]??30}개</span>
+                </div>
+                <input type="range" min={5} max={100} step={5}
+                  value={targetCount[i]??30}
+                  onChange={e=>{
+                    const arr = Array.isArray(targetCount) ? [...targetCount] : Array.from({length:targetSets},()=>30);
+                    arr[i]=Number(e.target.value);
+                    setTargetCount(arr);
+                  }}
+                  style={{ width:'100%', accentColor:'#ffc400' }}/>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+      <div style={{ padding:'0 20px 36px' }}>
+        <BtnPrimary onClick={() => onStart({ mode, targetCount, targetSets })}>
+          {mode==='free'?'자유 모드 시작 🔥':mode==='target'?`목표 ${targetCount}개 시작 🎯`:'100개 챌린지 시작 💯'}
+        </BtnPrimary>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenWorkout({ onFinish, config = { mode:'free', targetCount:[30,25,20], targetSets:3 } }) {
+  const isChallenge = config.mode === 'challenge';
+  const isTarget = config.mode === 'target';
+  const setGoals = Array.isArray(config.targetCount) ? config.targetCount : [30,25,20];
+
+  const [started, setStarted] = useState(false);
+  const [count, setCount] = useState(0);
+  const [set, setSet] = useState(1);
+  const [resting, setResting] = useState(false);
+  const [restSec, setRestSec] = useState(60);
+  const [pulse, setPulse] = useState(false);
+  const [setHistory, setSetHistory] = useState([]);
+  const timerRef = useRef(null);
+  const restRef = useRef(null);
+
+  const CHALLENGE_GOAL = 100;
+  const currentGoal = isTarget ? (setGoals[set-1] ?? 30) : null;
+  const remaining = isTarget ? Math.max(0, currentGoal - count) : isChallenge ? Math.max(0, CHALLENGE_GOAL - count) : null;
+
+  useEffect(() => {
+    if (!started) return;
+    timerRef.current = setInterval(() => {
+      setCount(c => {
+        const next = c + 1;
+        setPulse(true); setTimeout(() => setPulse(false), 150);
+        // 목표 모드: 목표 달성 시 자동 세트 완료
+        if (isTarget && currentGoal && next >= currentGoal) {
+          clearInterval(timerRef.current);
+          setTimeout(() => {
+            setSetHistory(h => [...h, next]);
+            setResting(true);
+            setRestSec(60);
+          }, 300);
+        }
+        // 챌린지 모드: 100개 달성 시 자동 완료
+        if (isChallenge && next >= CHALLENGE_GOAL) {
+          clearInterval(timerRef.current);
+          setTimeout(() => {
+            onFinish({ sets:1, total:CHALLENGE_GOAL, history:[CHALLENGE_GOAL], challenge:true });
+          }, 400);
+        }
+        return next;
+      });
+    }, 600);
+    return () => clearInterval(timerRef.current);
+  }, [set, started, currentGoal]);
+
+  useEffect(() => {
+    if (!resting) return;
+    restRef.current = setInterval(() => {
+      setRestSec(s => {
+        if (s <= 1) {
+          clearInterval(restRef.current);
+          setResting(false);
+          setCount(0);
+          setSet(sv => sv + 1);
+          return 60;
+        }
+        return s - 1;
+      });
+    }, 300);
+    return () => clearInterval(restRef.current);
+  }, [resting]);
+
+  const completeSet = () => {
+    clearInterval(timerRef.current);
+    setSetHistory(h => [...h, count]);
+    setResting(true);
+    setRestSec(60);
+  };
+
+  const skipRest = () => {
+    clearInterval(restRef.current);
+    setResting(false);
+    setCount(0);
+    setSet(sv => sv + 1);
+  };
+
+  const totalCount = setHistory.reduce((a, b) => a + b, 0) + count;
+
+  if (!started) return (
+    <div style={{ width:'100%', height:'100%', background:'#080e18', position:'relative', overflow:'hidden' }}>
+      <StatusBar />
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(175deg, #10182a 0%, #060c14 100%)' }}/>
+      {['tl','tr','bl','br'].map(pos=>(
+        <div key={pos} style={{ position:'absolute', top:pos.startsWith('t')?60:'auto', bottom:pos.startsWith('b')?60:'auto', left:pos.endsWith('l')?20:'auto', right:pos.endsWith('r')?20:'auto', width:28, height:28, borderTop:pos.startsWith('t')?'3px solid rgba(255,196,0,0.6)':'none', borderBottom:pos.startsWith('b')?'3px solid rgba(255,196,0,0.6)':'none', borderLeft:pos.endsWith('l')?'3px solid rgba(255,196,0,0.6)':'none', borderRight:pos.endsWith('r')?'3px solid rgba(255,196,0,0.6)':'none', zIndex:10 }}/>
+      ))}
+      <svg style={{ position:'absolute', left:'50%', top:'46%', transform:'translate(-50%,-50%)', opacity:0.3, zIndex:5 }} width="100" height="200" viewBox="0 0 80 160" fill="none">
+        <circle cx="40" cy="18" r="14" stroke="rgba(255,196,0,0.9)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="40" y1="32" x2="40" y2="90" stroke="rgba(255,196,0,0.9)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="40" y1="50" x2="10" y2="75" stroke="rgba(255,196,0,0.9)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="40" y1="50" x2="70" y2="75" stroke="rgba(255,196,0,0.9)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="10" y1="75" x2="8" y2="100" stroke="rgba(255,196,0,0.6)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="70" y1="75" x2="72" y2="100" stroke="rgba(255,196,0,0.6)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="40" y1="90" x2="25" y2="135" stroke="rgba(255,196,0,0.9)" strokeWidth="2" strokeDasharray="5 3"/>
+        <line x1="40" y1="90" x2="55" y2="135" stroke="rgba(255,196,0,0.9)" strokeWidth="2" strokeDasharray="5 3"/>
+      </svg>
+      <div style={{ position:'absolute', top:72, left:0, right:0, textAlign:'center', zIndex:10 }}>
+        <div style={{ fontSize:13, color:'rgba(255,196,0,0.8)', fontWeight:700, letterSpacing:'0.08em', marginBottom:4 }}>카메라 준비 중</div>
+        <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>전신이 화면에 들어오도록 위치를 맞춰주세요</div>
+      </div>
+      <div style={{ position:'absolute', bottom:44, left:20, right:20, zIndex:10 }}>
+        <button onClick={() => setStarted(true)} style={{ width:'100%', padding:'18px', background:'linear-gradient(135deg,#ffc400,#ff8c00)', borderRadius:18, fontSize:17, fontWeight:900, color:'#000', border:'none', cursor:'pointer', letterSpacing:'-0.02em', boxShadow:'0 4px 24px rgba(255,196,0,0.4)' }}>운동 시작하기 💪</button>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#080e18', position:'relative', overflow:'hidden' }}>
+      <StatusBar />
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(175deg,#10182a 0%,#060c14 100%)' }}/>
+      <svg style={{ position:'absolute', left:'50%', top:'52%', transform:'translate(-50%,-50%)', opacity:0.35 }} width="100" height="185" viewBox="0 0 80 160" fill="none">
+        <circle cx="40" cy="18" r="14" stroke="rgba(255,196,0,0.9)" strokeWidth="2"/>
+        <line x1="40" y1="32" x2="40" y2="90" stroke="rgba(255,196,0,0.8)" strokeWidth="2"/>
+        <line x1="40" y1="50" x2="10" y2="75" stroke="rgba(255,196,0,0.8)" strokeWidth="2"/>
+        <line x1="40" y1="50" x2="70" y2="75" stroke="rgba(255,196,0,0.8)" strokeWidth="2"/>
+        {[[40,18],[10,75],[70,75],[8,100],[72,100],[25,135],[55,135]].map(([x,y],i)=><circle key={i} cx={x} cy={y} r="4" fill="rgba(255,196,0,0.9)"/>)}
+      </svg>
+      <div style={{ position:'absolute', top:66, left:0, right:0, textAlign:'center', transform:pulse?'scale(1.1)':'scale(1)', transition:'transform 0.12s cubic-bezier(0.34,1.56,0.64,1)' }}>
+        {isChallenge ? (
+          <>
+            <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontWeight:600, letterSpacing:'0.05em', marginBottom:4 }}>남은 횟수</div>
+            <div style={{ fontSize:92, fontWeight:900, color: remaining <= 10 ? '#ffc400' : '#fff', letterSpacing:'-0.05em', lineHeight:1, textShadow:`0 0 40px rgba(255,196,0,${pulse?0.6:0.2})` }}>{remaining}</div>
+            <div style={{ fontSize:15, color:'rgba(255,255,255,0.35)', fontWeight:500, marginTop:4 }}>100개 챌린지 · {count}개 완료</div>
+            <div style={{ margin:'10px 20px 0' }}>
+              <ProgressBar value={count} max={100} color="#ffc400" height={5}/>
+            </div>
+          </>
+        ) : isTarget ? (
+          <>
+            <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontWeight:600, letterSpacing:'0.05em', marginBottom:4 }}>남은 횟수</div>
+            <div style={{ fontSize:92, fontWeight:900, color: remaining <= 5 ? '#ffc400' : '#fff', letterSpacing:'-0.05em', lineHeight:1, textShadow:`0 0 40px rgba(255,196,0,${pulse?0.6:0.2})` }}>{remaining}</div>
+            <div style={{ fontSize:15, color:'rgba(255,255,255,0.35)', fontWeight:500, marginTop:4 }}>
+              세트 {set} · 목표 {currentGoal}개 중 {count}개 완료
+            </div>
+            <div style={{ margin:'10px 20px 0' }}>
+              <ProgressBar value={count} max={currentGoal} color="#ffc400" height={4}/>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize:92, fontWeight:900, color:'#fff', letterSpacing:'-0.05em', lineHeight:1, textShadow:`0 0 40px rgba(255,196,0,${pulse?0.6:0.2})` }}>{count}</div>
+            <div style={{ fontSize:15, color:'rgba(255,255,255,0.4)', fontWeight:500, marginTop:2 }}>세트 {set}</div>
+          </>
+        )}
+      </div>
+      
+      {/* 완료된 세트 요약 */}
+      {setHistory.length > 0 && (
+        <div style={{ position:'absolute', top:248, left:20, right:20, display:'flex', gap:6, flexWrap:'wrap' }}>
+          {setHistory.map((n, i) => (
+            <div key={i} style={{ background:'rgba(255,196,0,0.15)', border:'1px solid rgba(255,196,0,0.3)', borderRadius:8, padding:'3px 10px', fontSize:11, fontWeight:700, color:'#ffc400' }}>
+              {i+1}세트 {n}개
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 20px 40px', background:'linear-gradient(transparent,rgba(0,0,0,0.9))' }}>
+        {isChallenge ? (
+          <button onClick={() => onFinish({ sets:1, total:count, history:count>0?[count]:[], challenge:true, gaveUp:true })} style={{ width:'100%', padding:'14px 0', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:14, fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.5)', cursor:'pointer' }}>
+            포기하기
+          </button>
+        ) : (
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
+            {(() => {
+              const maxSets = isTarget ? config.targetSets : null;
+              const setsCompleted = setHistory.length;
+              const canDoMoreSets = !isTarget || setsCompleted < maxSets;
+              return (
+                <button onClick={canDoMoreSets ? completeSet : undefined} style={{
+                  flex:1, padding:'12px 0',
+                  background: canDoMoreSets ? 'rgba(255,196,0,0.15)' : 'rgba(255,255,255,0.04)',
+                  border: `1.5px solid ${canDoMoreSets ? '#ffc400' : 'rgba(255,255,255,0.08)'}`,
+                  borderRadius:14, fontSize:13, fontWeight:800,
+                  color: canDoMoreSets ? '#ffc400' : 'rgba(255,255,255,0.2)',
+                  cursor: canDoMoreSets ? 'pointer' : 'not-allowed',
+                  opacity: canDoMoreSets ? 1 : 0.5,
+                }}>
+                  {isTarget && !canDoMoreSets ? `${maxSets}세트 완료 ✓` : '세트 완료 ✓'}
+                </button>
+              );
+            })()}
+            <button onClick={() => {
+              const finalHistory = count > 0 ? [...setHistory, count] : setHistory;
+              onFinish({ sets:finalHistory.length, total:finalHistory.reduce((a,b)=>a+b,0), history:finalHistory });
+            }} style={{ flex:1, padding:'12px 0', background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:14, fontSize:13, fontWeight:700, color:'rgba(255,255,255,0.7)', cursor:'pointer' }}>
+              운동 완료
+            </button>
+          </div>
+        )}
+      </div>
+      {resting&&(
+        <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(6px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', zIndex:50 }}>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:8, fontWeight:600 }}>세트 {set} 완료 ✅ {setHistory[setHistory.length - 1] ?? 0}개</div>
+          <div style={{ fontSize:72, fontWeight:900, color:'#ffc400', letterSpacing:'-0.04em', lineHeight:1 }}>{restSec}</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginTop:6 }}>초 후 다음 세트</div>
+          <div style={{ display:'flex', gap:12, marginTop:28 }}>
+            <button style={{ padding:'12px 22px', background:'rgba(255,255,255,0.1)', border:'none', borderRadius:22, fontSize:14, fontWeight:600, color:'#fff', cursor:'pointer' }}>+30초</button>
+            <button onClick={skipRest} style={{ padding:'12px 22px', background:'#ffc400', border:'none', borderRadius:22, fontSize:14, fontWeight:800, color:'#000', cursor:'pointer' }}>바로 시작</button>
+          </div>
+        </div>
+      )}
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenResult({ data={}, charStage=3, totalPushups=847, onLevelUp, onHome }) {
+  const { sets=3, total=95, history } = data;
+  const isPR = total > 80;
+  const setRows = (history && history.length > 0)
+    ? history.map((n, i) => ({ s:i+1, n, t:'-', pr:false }))
+    : [{s:1,n:30,t:'4분 30초',pr:true},{s:2,n:35,t:'4분 50초'},{s:3,n:Math.max(0,total-65),t:'3분 10초'}];
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      <StatusBar />
+      <div style={{ padding:'52px 20px 0', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:'-0.02em' }}>운동 완료! 🎉</div>
+        <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', fontWeight:500 }}>오늘 2번째</div>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'20px 20px 0' }}>
+        <GabpaChar stage={charStage} size={90} glow />
+        <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginTop:10 }}>오늘의 성과</div>
+        <div style={{ fontSize:56, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1, marginTop:4 }}>{total}</div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,0.4)', marginTop:3 }}>총 푸쉬업{isPR&&<span style={{ display:'inline-flex', alignItems:'center', gap:4, marginLeft:8, background:'rgba(255,196,0,0.15)', border:'1px solid rgba(255,196,0,0.3)', color:'#ffc400', borderRadius:6, fontSize:10, fontWeight:800, padding:'2px 7px' }}>🏆 최고기록</span>}</div>
+      </div>
+      <div style={{ display:'flex', gap:10, padding:'16px 20px 0' }}>
+        {[{val:String(sets),lbl:'세트'},{val:'18분',lbl:'운동 시간'},{val:String(total)+'개',lbl:'총 횟수'}].map((s,i)=>(
+          <div key={i} style={{ flex:1, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 8px', textAlign:'center' }}>
+            <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:'-0.02em' }}>{s.val}</div>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', marginTop:3 }}>{s.lbl}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding:'16px 20px 0' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,0.4)' }}>세트 상세</div>
+          <div style={{ fontSize:11, color:'rgba(255,196,0,0.7)', fontWeight:600 }}>✏️ 숫자를 눌러 수정</div>
+        </div>
+        {setRows.map(row => (
+          <EditableSetRow key={row.s} row={row} />
+        ))}
+      </div>
+      <div style={{ padding:'14px 20px 0' }}>
+        <div style={{ background:'rgba(255,196,0,0.07)', border:'1px solid rgba(255,196,0,0.15)', borderRadius:14, padding:'12px 14px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+            <span style={{ fontSize:13, fontWeight:700, color:'#ffc400' }}>⚡ 진화 진행도</span>
+            <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>{charStage}단계 → {charStage+1}단계</span>
+          </div>
+          {(() => {
+            const stageBoundaries = [0, 100, 500, 2000, 5000, 10000, 25000, 50000, 100000];
+            const curThreshold = stageBoundaries[charStage-1] ?? 0;
+            const nextThreshold = stageBoundaries[charStage] ?? stageBoundaries[stageBoundaries.length-1];
+            const newTotal = totalPushups + total;
+            const remaining = Math.max(0, nextThreshold - newTotal);
+            return (
+              <>
+                <ProgressBar value={newTotal - curThreshold} max={Math.max(1, nextThreshold - curThreshold)} extra={total} extraColor="#ff8c00"/>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:6, display:'flex', justifyContent:'space-between' }}>
+                  <span>{newTotal.toLocaleString()} / {nextThreshold.toLocaleString()}개 달성 · 앞으로 {remaining.toLocaleString()}개</span>
+                  {total > 0 && <span style={{ color:'#ff8c00', fontWeight:700 }}>+{total}개</span>}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+      <div style={{ padding:'16px 20px 36px', display:'flex', flexDirection:'column', gap:10 }}>
+        <BtnPrimary onClick={onHome}>홈으로 돌아가기</BtnPrimary>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenLevelUp({ newStage=4, onNext }) {
+  const stageNames = ['','마른 체형','약간 다듬어진','보통 운동인','단단한 체형','근육질','대흉근 부각','갑빠 형태 완성','보디빌더형','갑빠왕'];
+  const particles = Array.from({length:16},(_,i)=>({ left:`${5+Math.random()*90}%`, delay:`${Math.random()*1.8}s`, dur:`${1.5+Math.random()*1.5}s`, color:['#ffc400','#ff8c00','#fff','#ffdd00','#ff5500'][i%5], size:`${3+Math.random()*4}px` }));
+  const [showShare, setShowShare] = useState(false);
+  const [shared, setShared] = useState(false);
+  const stageBoundaries = [0, 100, 500, 2000, 5000, 10000, 25000, 50000, 100000];
+  const threshold = stageBoundaries[newStage-1] ?? 0;
+  const handleShare = () => {
+    setShared(true);
+    setTimeout(() => { setShowShare(false); setShared(false); }, 1600);
+  };
+  return (
+    <div style={{ width:'100%', height:'100%', position:'relative', background:`radial-gradient(ellipse 90% 70% at 50% 35%, rgba(255,196,0,0.25) 0%, rgba(255,80,0,0.08) 55%, transparent 75%), #0a0a12`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'48px 28px', overflow:'hidden' }}>
+      <StatusBar />
+      {particles.map((p,i)=><div key={i} style={{ position:'absolute', bottom:'15%', left:p.left, width:p.size, height:p.size, borderRadius:'50%', background:p.color, animation:`floatUp ${p.dur} ease-in ${p.delay} infinite`, pointerEvents:'none' }}/>)}
+      <div style={{ fontSize:11, fontWeight:800, letterSpacing:'0.22em', color:'#ffc400', marginBottom:16, textTransform:'uppercase' }}>⚡ 단계 진화!</div>
+      <GabpaChar stage={newStage} size={140} glow animated />
+      <div style={{ marginTop:20, marginBottom:6, fontSize:32, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>{newStage}단계 달성!</div>
+      <div style={{ fontSize:16, color:'#ffc400', fontWeight:700, marginBottom:10 }}>{stageNames[newStage]}</div>
+      <div style={{ fontSize:14, color:'rgba(255,255,255,0.45)', lineHeight:1.7, marginBottom:32, maxWidth:240 }}>누적 {threshold.toLocaleString()}개를 돌파했어요.<br/>당신의 갑빠가 눈에 띄게 성장했습니다! 💪</div>
+      <BtnPrimary onClick={onNext} style={{ marginBottom:12 }}>계속 성장하기 🚀</BtnPrimary>
+      <BtnGhost onClick={() => setShowShare(true)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>💬 카카오로 자랑하기</BtnGhost>
+      <HomeIndicator />
+
+      {/* 공유 미리보기 바텀시트 */}
+      {showShare && (
+        <div onClick={() => !shared && setShowShare(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(8px)', display:'flex', alignItems:'flex-end', zIndex:300 }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width:'100%', background:'#1a1a26',
+            borderRadius:'24px 24px 0 0',
+            padding:'24px 20px 36px',
+            border:'1px solid rgba(255,255,255,0.08)',
+            textAlign:'left',
+            animation:'slideUp 0.3s ease',
+          }}>
+            <div style={{ width:40, height:4, borderRadius:4, background:'rgba(255,255,255,0.15)', margin:'0 auto 18px' }}/>
+            <div style={{ fontSize:18, fontWeight:900, color:'#fff', marginBottom:4 }}>카카오톡으로 자랑하기</div>
+            <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', marginBottom:18 }}>친구에게 이렇게 공유돼요</div>
+
+            {/* 카카오 카드 미리보기 */}
+            <div style={{ background:'#fff', borderRadius:14, overflow:'hidden', boxShadow:'0 8px 24px rgba(0,0,0,0.4)', marginBottom:14 }}>
+              <div style={{
+                background:`radial-gradient(ellipse 90% 90% at 50% 40%, rgba(255,196,0,0.35) 0%, rgba(255,140,0,0.15) 50%, transparent 80%), linear-gradient(180deg, #1a1a26 0%, #0a0a12 100%)`,
+                padding:'24px 20px 20px',
+                display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center',
+                position:'relative',
+              }}>
+                <div style={{ fontSize:9, fontWeight:800, letterSpacing:'0.2em', color:'#ffc400', marginBottom:10 }}>⚡ 단계 진화!</div>
+                <GabpaChar stage={newStage} size={80} glow />
+                <div style={{ fontSize:20, fontWeight:900, color:'#fff', marginTop:12, letterSpacing:'-0.02em' }}>{newStage}단계 {stageNames[newStage]}</div>
+                <div style={{ fontSize:12, color:'#ffc400', fontWeight:700, marginTop:3 }}>누적 {threshold.toLocaleString()}개 돌파!</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', marginTop:8 }}>갑빠지망생 · 12일 연속 운동 중</div>
+              </div>
+              <div style={{ padding:'12px 14px', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:800, color:'#1a1a26' }}>나도 갑빠왕 도전!</div>
+                  <div style={{ fontSize:10, color:'#888', marginTop:2 }}>내일은 갑빠왕 · 푸쉬업 트래커</div>
+                </div>
+                <div style={{ background:'#ffc400', color:'#000', fontSize:11, fontWeight:800, padding:'7px 12px', borderRadius:8 }}>앱 열기</div>
+              </div>
+            </div>
+
+            {/* 메시지 미리보기 */}
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'10px 12px', marginBottom:18 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)', marginBottom:4 }}>메시지 (수정 가능)</div>
+              <div style={{ fontSize:13, color:'#fff', lineHeight:1.5 }}>드디어 {newStage}단계 달성! 누적 {threshold.toLocaleString()}개 돌파했어요 💪</div>
+            </div>
+
+            {/* 액션 버튼 */}
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <button onClick={handleShare} disabled={shared} style={{
+                width:'100%', padding:'14px 16px', borderRadius:14,
+                background: shared ? 'rgba(0,200,83,0.15)' : '#fee500',
+                border: shared ? '1.5px solid rgba(0,200,83,0.4)' : 'none',
+                display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+                fontSize:15, fontWeight:800, color: shared ? '#00c853' : '#3c1e1e',
+                cursor: shared ? 'default' : 'pointer',
+                transition:'all 0.2s',
+              }}>
+                {shared ? (
+                  <>✓ 카카오톡으로 공유했어요</>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#3c1e1e">
+                      <path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.73 1.67 5.13 4.19 6.57L5.1 21l4.44-2.33c.8.18 1.62.27 2.46.27 5.52 0 10-3.48 10-7.94C22 6.48 17.52 3 12 3z"/>
+                    </svg>
+                    카카오톡으로 보내기
+                  </>
+                )}
+              </button>
+              <button style={{
+                width:'100%', padding:'13px 16px', borderRadius:14,
+                background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
+                fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.7)', cursor:'pointer',
+              }}>📥 이미지로 저장</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   RECORD SCREENS
+══════════════════════════════════════ */
+function CalendarTab() {
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [monthOffset, setMonthOffset] = useState(0);
+
+  const MONTH_DATA = {
+    0:  { label:'2026년 4월', data:[0,0,15,42,28,0,0,18,95,67,33,0,0,52,103,120,78,25,0,0,30,65,88,45,0,0,22,58,76,0], streak:12 },
+    '-1': { label:'2026년 3월', data:[0,0,0,20,35,0,0,45,80,60,0,0,30,70,90,55,0,0,40,85,100,70,0,0,25,60,80,50,20,0,0], streak:8 },
+    '-2': { label:'2026년 2월', data:[0,0,30,50,0,0,20,60,85,40,0,0,35,75,95,60,0,0,28,65,90,55,0,0,0,40,70,85,0], streak:5 },
+    '-3': { label:'2026년 1월', data:[0,10,25,0,0,15,45,70,50,0,0,20,55,80,60,0,0,30,65,90,70,0,0,25,50,75,55,0,0,20,40], streak:3 },
+  };
+  const key = String(monthOffset);
+  const month = MONTH_DATA[key] || MONTH_DATA['0'];
+  const calData = month.data;
+  const dayNums = Array.from({length:calData.length},(_,i)=>i+1);
+
+  // 날짜별 세트 더미 데이터 생성
+  const getDayDetail = (day, total) => {
+    if (!total || total === 0) return null;
+    const sets = total > 80 ? 4 : total > 50 ? 3 : total > 20 ? 2 : 1;
+    const rows = [];
+    let rem = total;
+    for (let i = 0; i < sets; i++) {
+      const n = i === sets-1 ? rem : Math.floor(rem * (0.35 + Math.random()*0.2));
+      rows.push({ s:i+1, n, best: i===0 });
+      rem -= n;
+    }
+    return rows;
+  };
+
+  return (
+    <div style={{ flex:1, overflowY:'auto', padding:'16px 20px 100px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(255,196,0,0.07)', border:'1px solid rgba(255,196,0,0.18)', borderRadius:14, padding:'12px 14px', marginBottom:16 }}>
+        <span style={{ fontSize:26 }}>🔥</span>
+        <div>
+          <div style={{ fontSize:15, fontWeight:900, color:'#ffc400' }}>{month.streak}일 연속 운동 중!</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', marginTop:2 }}>{month.label} 최장 연속 운동일</div>
+        </div>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+        <button onClick={() => { setMonthOffset(o => o-1); setSelectedDay(null); }} style={{ width:32, height:32, borderRadius:'50%', background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer', fontSize:16, color:'rgba(255,255,255,0.6)', display:'flex', alignItems:'center', justifyContent:'center' }}>←</button>
+        <div style={{ fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.7)' }}>{month.label}</div>
+        <button onClick={() => { setMonthOffset(o => Math.min(o+1, 0)); setSelectedDay(null); }} style={{ width:32, height:32, borderRadius:'50%', background:'rgba(255,255,255,0.07)', border:'none', cursor: monthOffset >= 0 ? 'not-allowed':'pointer', fontSize:16, color: monthOffset >= 0 ?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.6)', display:'flex', alignItems:'center', justifyContent:'center', opacity: monthOffset >= 0 ? 0.4 : 1 }}>→</button>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:11, color:'rgba(255,255,255,0.35)', marginBottom:8, padding:'0 2px' }}>
+        <span>날짜 · 푸쉬업 횟수</span>
+        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          <span>적음</span>
+          {[0.15,0.3,0.55,0.85].map((a,i)=>(<div key={i} style={{ width:10, height:10, borderRadius:3, background:`rgba(255,196,0,${a})` }}/>))}
+          <span>많음</span>
+        </div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:4 }}>
+        {['일','월','화','수','목','금','토'].map(d=><div key={d} style={{ textAlign:'center', fontSize:10, color:'rgba(255,255,255,0.2)', paddingBottom:2 }}>{d}</div>)}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:16 }}>
+        {calData.map((n,i)=>{
+          const lv = n===0?0:n<30?1:n<60?2:n<100?3:4;
+          const isToday = monthOffset===0 && i===calData.length-3;
+          const isSelected = selectedDay === i;
+          const numColor = isSelected ? '#000' : lv>=3 ? 'rgba(0,0,0,0.85)' : '#ffc400';
+          return (
+            <div key={i} onClick={() => n>0 && setSelectedDay(isSelected ? null : i)} style={{
+              height:44, borderRadius:8, position:'relative',
+              cursor: n>0 ? 'pointer' : 'default',
+              background: isSelected ? '#ffc400' : lv===0 ? 'rgba(255,255,255,0.04)' : `rgba(255,196,0,${[0.15,0.3,0.55,0.85][lv-1]})`,
+              outline: isToday ? '2px solid #ffc400' : 'none',
+              outlineOffset: 1,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              transition:'transform 0.1s',
+              transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+            }}>
+              <div style={{ position:'absolute', top:3, left:5, fontSize:9, color: isSelected?'rgba(0,0,0,0.55)':lv>=3?'rgba(0,0,0,0.55)':'rgba(255,255,255,0.35)', fontWeight:600, lineHeight:1 }}>{dayNums[i]}</div>
+              {n>0 ? (
+                <div style={{ display:'flex', alignItems:'baseline', gap:1, marginTop:6 }}>
+                  <span style={{ fontSize:14, fontWeight:900, color:numColor, lineHeight:1, letterSpacing:'-0.02em' }}>{n}</span>
+                  <span style={{ fontSize:8, fontWeight:700, color: isSelected?'rgba(0,0,0,0.5)':lv>=3?'rgba(0,0,0,0.5)':'rgba(255,196,0,0.6)', lineHeight:1 }}>회</span>
+                </div>
+              ) : (
+                <div style={{ width:3, height:3, borderRadius:'50%', background:'rgba(255,255,255,0.1)' }}/>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 선택된 날짜 상세 */}
+      {selectedDay !== null && calData[selectedDay] > 0 ? (
+        <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,196,0,0.2)', borderRadius:16, padding:16, animation:'fadeIn 0.2s ease' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <div style={{ fontSize:14, fontWeight:800, color:'#fff' }}>
+              {month.label.replace('년 ','년 ').split('년 ')[0]}년 {month.label.split('년 ')[1]} {dayNums[selectedDay]}일
+            </div>
+            <div style={{ fontSize:14, fontWeight:900, color:'#ffc400' }}>총 {calData[selectedDay]}개</div>
+          </div>
+          {getDayDetail(dayNums[selectedDay], calData[selectedDay])?.map(row=>(
+            <div key={row.s} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:24, height:24, borderRadius:8, background: row.best?'rgba(255,196,0,0.15)':'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color: row.best?'#ffc400':'rgba(255,255,255,0.4)' }}>{row.s}</div>
+                <span style={{ fontSize:13, color:'#fff', fontWeight:600 }}>세트 {row.s}</span>
+                {row.best && <span style={{ fontSize:9, background:'rgba(255,196,0,0.15)', color:'#ffc400', padding:'2px 6px', borderRadius:4, fontWeight:800 }}>최고</span>}
+              </div>
+              <span style={{ fontSize:14, fontWeight:900, color: row.best?'#ffc400':'rgba(255,255,255,0.7)' }}>{row.n}개</span>
+            </div>
+          ))}
+        </div>
+      ) : selectedDay !== null && calData[selectedDay] === 0 ? (
+        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:16, padding:16, textAlign:'center' }}>
+          <div style={{ fontSize:24, marginBottom:8 }}>😴</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)' }}>이 날은 쉬었어요</div>
+        </div>
+      ) : (
+        <div style={{ textAlign:'center', padding:'12px 0', fontSize:12, color:'rgba(255,255,255,0.2)' }}>
+          날짜를 눌러 상세 기록을 확인하세요
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatsTab() {
+  return (
+    <div style={{ flex:1, overflowY:'auto', padding:'16px 20px 100px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        {[{val:'2,847',lbl:'누적 횟수',delta:'+312 이번 주'},{val:'42개',lbl:'1회 최고기록',delta:'+4 전월 대비'},{val:'43일',lbl:'총 운동일',delta:'12일 연속 중'},{val:'66개',lbl:'일평균 횟수',delta:'+11 전월비'}].map((s,i)=>(
+          <div key={i} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:16, padding:14 }}>
+            <div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>{s.val}</div>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', marginTop:4 }}>{s.lbl}</div>
+            <div style={{ fontSize:11, fontWeight:700, color:'#00c853', marginTop:6 }}>↑ {s.delta}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:16, marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.4)', marginBottom:12 }}>월별 1회 최고기록 성장</div>
+        <div style={{ display:'flex', alignItems:'flex-end', gap:4, height:56 }}>
+          {[20,24,26,30,33,38,42].map((h,i)=><div key={i} style={{ flex:1, borderRadius:'4px 4px 0 0', minHeight:6, height:`${(h/42)*100}%`, background:i===6?'linear-gradient(180deg,#ffc400,#ff8c00)':'rgba(255,255,255,0.1)' }}/>)}
+        </div>
+        <div style={{ display:'flex', gap:4, marginTop:6 }}>
+          {['10','11','12','1','2','3','4'].map(m=><div key={m} style={{ flex:1, textAlign:'center', fontSize:9, color:'rgba(255,255,255,0.2)' }}>{m}월</div>)}
+        </div>
+      </div>
+      <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:16, padding:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.4)', marginBottom:10 }}>가장 많이 한 날 TOP 3</div>
+        {[{date:'4월 27일',n:120,rank:'🥇'},{date:'4월 20일',n:105,rank:'🥈'},{date:'3월 15일',n:98,rank:'🥉'}].map((r,i)=>(
+          <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 0', borderBottom:i<2?'1px solid rgba(255,255,255,0.05)':'none' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}><span style={{ fontSize:18 }}>{r.rank}</span><span style={{ fontSize:13, color:'rgba(255,255,255,0.55)' }}>{r.date}</span></div>
+            <span style={{ fontSize:16, fontWeight:900, color:'#fff' }}>{r.n}개</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScreenRecord({ onNav, onPR, initialTab='1rm' }) {
+  const [tab, setTab] = useState(initialTab);
+  const [filter, setFilter] = useState('7d');
+
+  const DATA = {
+    '7d': {
+      prBars: [30,32,28,35,33,38,42],
+      prLabels: ['월','화','수','목','금','토','일'],
+      prPeak: 42, prTotal: '이번 주 최고',
+      prBadge: '+4개 갱신',
+      totalBars: [60,80,0,100,80,120,70],
+      totalPeak: '312개', totalSub: '이번 주 합계',
+      highlightIdx: 6, highlightTotalIdx: 5,
+      unit: '요일별',
+    },
+    '30d': {
+      prBars: [35,38,39,42],
+      prLabels: ['1주차','2주차','3주차','4주차'],
+      prPeak: 42, prTotal: '이번 달 최고',
+      prBadge: '+12개 갱신',
+      totalBars: [210,280,195,312],
+      totalPeak: '997개', totalSub: '이번 달 합계',
+      highlightIdx: 3, highlightTotalIdx: 3,
+      unit: '주별',
+    },
+    'all': {
+      prBars: [28,32,35,36,40,42],
+      prLabels: ['11월','12월','1월','2월','3월','4월'],
+      prPeak: 42, prTotal: '역대 최고',
+      prBadge: '+14개 성장',
+      totalBars: [420,580,650,720,890,997],
+      totalPeak: '4,257개', totalSub: '누적 합계',
+      highlightIdx: 5, highlightTotalIdx: 5,
+      unit: '월별',
+    },
+  };
+
+  const d = DATA[filter];
+  const prMax = Math.max(...d.prBars);
+  const totalMax = Math.max(...d.totalBars);
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ padding:'52px 20px 0' }}><div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', marginBottom:4 }}>기록</div></div>
+      <div style={{ display:'flex', padding:'8px 20px 0', borderBottom:'1px solid rgba(255,255,255,0.07)', gap:0 }}>
+        {[['1rm','1회 최고기록'],['calendar','캘린더'],['stats','통계'],['friends','친구']].map(([id,label])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{ padding:'10px 11px', background:'none', border:'none', cursor:'pointer', fontSize:12, fontWeight:700, color:tab===id?'#ffc400':'rgba(255,255,255,0.35)', borderBottom:`2px solid ${tab===id?'#ffc400':'transparent'}`, marginBottom:-1 }}>{label}</button>
+        ))}
+      </div>
+      {tab==='1rm'&&(
+        <div style={{ flex:1, overflowY:'auto', padding:'16px 20px 100px' }}>
+          <div style={{ display:'flex', gap:6, marginBottom:14 }}>
+            {[['7d','7일'],['30d','30일'],['all','전체']].map(([id,label])=>(
+              <button key={id} onClick={()=>setFilter(id)} style={{ padding:'5px 14px', borderRadius:20, background:filter===id?'rgba(255,196,0,0.12)':'rgba(255,255,255,0.06)', border:`1px solid ${filter===id?'rgba(255,196,0,0.3)':'rgba(255,255,255,0.08)'}`, fontSize:12, fontWeight:600, color:filter===id?'#ffc400':'rgba(255,255,255,0.4)', cursor:'pointer' }}>{label}</button>
+            ))}
+          </div>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:16, marginBottom:14 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.4)', marginBottom:4 }}>1회 최고기록 ({d.unit})</div>
+            <div style={{ fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>{d.prPeak}개 <span style={{ fontSize:14, color:'rgba(255,255,255,0.35)', fontWeight:500 }}>{d.prTotal}</span></div>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:'rgba(255,196,0,0.12)', color:'#ffc400', border:'1px solid rgba(255,196,0,0.25)', borderRadius:6, fontSize:11, fontWeight:800, padding:'3px 8px', margin:'6px 0 14px' }}>🏆 {d.prBadge}</div>
+            <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:80 }}>
+              {d.prBars.map((h,i)=>(
+                <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', height:'100%', justifyContent:'flex-end' }}>
+                  <div style={{ fontSize:9, fontWeight:700, color:i===d.highlightIdx?'#ffc400':'rgba(255,255,255,0.4)', marginBottom:3 }}>{h}</div>
+                  <div style={{ width:'100%', borderRadius:'4px 4px 0 0', height:`${(h/prMax)*70}%`, background:i===d.highlightIdx?'linear-gradient(180deg,#ffc400,#ff8c00)':'rgba(255,255,255,0.1)', minHeight:6 }}/>
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:6 }}>
+              {d.prLabels.map((label,i)=>(
+                <div key={i} style={{ flex:1, textAlign:'center', fontSize:10, color:i===d.highlightIdx?'rgba(255,196,0,0.7)':'rgba(255,255,255,0.25)', fontWeight:i===d.highlightIdx?700:400 }}>{label}</div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:16, marginBottom:14 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.4)', marginBottom:4 }}>총 횟수 ({d.unit})</div>
+            <div style={{ fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>{d.totalPeak} <span style={{ fontSize:14, color:'rgba(255,255,255,0.35)', fontWeight:500 }}>{d.totalSub}</span></div>
+            <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:80, marginTop:14 }}>
+              {d.totalBars.map((h,i)=>(
+                <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', height:'100%' }}>
+                  <div style={{ fontSize:9, fontWeight:700, color:i===d.highlightTotalIdx?'#ffc400':'rgba(255,255,255,0.35)', marginBottom:3 }}>{h}</div>
+                  <div style={{ width:'100%', borderRadius:'4px 4px 0 0', height:`${(h/totalMax)*70}%`, minHeight:6, background:i===d.highlightTotalIdx?'linear-gradient(180deg,#ffc400,#ff8c00)':'rgba(255,255,255,0.08)' }}/>
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:6 }}>
+              {d.prLabels.map((label,i)=>(
+                <div key={i} style={{ flex:1, textAlign:'center', fontSize:10, color:i===d.highlightTotalIdx?'rgba(255,196,0,0.7)':'rgba(255,255,255,0.25)', fontWeight:i===d.highlightTotalIdx?700:400 }}>{label}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {tab==='calendar'&&<CalendarTab />}
+      {tab==='stats'&&<StatsTab />}
+      {tab==='friends'&&<FriendTab />}
+      <BottomNav active="record" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function EditableSetRow({ row }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(row.n);
+  return (
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+      <span style={{ fontSize:14, color:'#fff', fontWeight:600 }}>
+        {row.s}세트
+        {row.pr && <span style={{ marginLeft:6, background:'rgba(255,196,0,0.15)', color:'#ffc400', fontSize:10, fontWeight:800, padding:'2px 6px', borderRadius:5, border:'1px solid rgba(255,196,0,0.25)' }}>🔥 최고기록</span>}
+      </span>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <span style={{ fontSize:12, color:'rgba(255,255,255,0.3)' }}>{row.t}</span>
+        {editing ? (
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <button onClick={() => setVal(v => Math.max(0, v-1))} style={{ width:28, height:28, borderRadius:8, background:'rgba(255,255,255,0.1)', border:'none', color:'#fff', fontSize:16, cursor:'pointer', fontWeight:700 }}>−</button>
+            <span style={{ fontSize:16, fontWeight:900, color:'#ffc400', minWidth:32, textAlign:'center' }}>{val}</span>
+            <button onClick={() => setVal(v => v+1)} style={{ width:28, height:28, borderRadius:8, background:'rgba(255,255,255,0.1)', border:'none', color:'#fff', fontSize:16, cursor:'pointer', fontWeight:700 }}>+</button>
+            <button onClick={() => setEditing(false)} style={{ padding:'4px 10px', borderRadius:8, background:'#ffc400', border:'none', color:'#000', fontSize:11, fontWeight:800, cursor:'pointer' }}>확인</button>
+          </div>
+        ) : (
+          <button onClick={() => setEditing(true)} style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 12px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:8, cursor:'pointer' }}>
+            <span style={{ fontSize:15, fontWeight:900, color:'#fff' }}>{val}개</span>
+            <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)' }}>✏️</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FriendTab() {
+  const [compareMetric, setCompareMetric] = useState('best');
+  const [showInvite, setShowInvite] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const copyLink = () => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); };
+
+  const friends = [
+    { id:1, name:'박민준', stage:5, best:58, total:3240, streak:21, isMe:false, beat:false },
+    { id:0, name:'나 (갑빠지망생)', stage:3, best:42, total:847, streak:12, isMe:true, beat:false },
+    { id:2, name:'이지훈', stage:3, best:45, total:620, streak:5, isMe:false, beat:true },
+    { id:3, name:'김태영', stage:2, best:38, total:410, streak:3, isMe:false, beat:false },
+    { id:4, name:'최성우', stage:2, best:30, total:280, streak:0, isMe:false, beat:false },
+  ];
+
+  const metricInfo = {
+    best:   { label:'1회 최고기록', unit:'개' },
+    total:  { label:'누적 횟수', unit:'개' },
+    streak: { label:'연속 운동일', unit:'일' },
+  };
+  const m = metricInfo[compareMetric];
+  const sorted = [...friends].sort((a,b) => b[compareMetric] - a[compareMetric]);
+  const maxVal = Math.max(...sorted.map(f => f[compareMetric]));
+
+  return (
+    <>
+    <div style={{ flex:1, overflowY:'auto', padding:'16px 20px 100px' }}>
+      {/* 기준 선택 */}
+      <div style={{ display:'flex', gap:6, marginBottom:16 }}>
+        {Object.entries(metricInfo).map(([id, info]) => (
+          <button key={id} onClick={() => setCompareMetric(id)} style={{
+            flex:1, padding:'8px 4px', borderRadius:10,
+            background: compareMetric===id ? 'rgba(255,196,0,0.12)' : 'rgba(255,255,255,0.05)',
+            border: `1.5px solid ${compareMetric===id ? '#ffc400' : 'rgba(255,255,255,0.08)'}`,
+            fontSize:11, fontWeight:700,
+            color: compareMetric===id ? '#ffc400' : 'rgba(255,255,255,0.4)',
+            cursor:'pointer',
+          }}>{info.label}</button>
+        ))}
+      </div>
+
+      {/* 친구 비교 리스트 */}
+      <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:16, marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.4)', marginBottom:14, textAlign:'center' }}>{m.label} 비교</div>
+        {sorted.map((f, i) => {
+          const barW = maxVal > 0 ? (f[compareMetric] / maxVal) * 100 : 0;
+          return (
+            <div key={f.id} style={{ marginBottom: i < sorted.length-1 ? 14 : 0 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
+                <div style={{ width:20, height:20, borderRadius:'50%', background: i===0?'rgba(255,196,0,0.2)':i===1?'rgba(192,192,192,0.15)':i===2?'rgba(205,127,50,0.15)':'rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:900, color: i===0?'#ffc400':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,0.35)', flexShrink:0 }}>{i+1}</div>
+                <GabpaChar stage={f.stage} size={24} />
+                <span style={{ flex:1, fontSize:13, fontWeight:700, color: f.isMe?'#ffc400':'#fff' }}>
+                  {f.name}
+                  {f.isMe && <span style={{ fontSize:9, background:'rgba(255,196,0,0.2)', color:'#ffc400', padding:'1px 5px', borderRadius:4, marginLeft:5, fontWeight:700 }}>나</span>}
+                  {f.beat && compareMetric==='best' && <span style={{ fontSize:9, background:'rgba(255,80,80,0.2)', color:'#ff6060', padding:'1px 5px', borderRadius:4, marginLeft:4, fontWeight:700 }}>내 기록 경신</span>}
+                </span>
+                <span style={{ fontSize:14, fontWeight:900, color: f.isMe?'#ffc400':'#fff' }}>{f[compareMetric].toLocaleString()}{m.unit}</span>
+              </div>
+              <div style={{ height:5, background:'rgba(255,255,255,0.07)', borderRadius:5, overflow:'hidden' }}>
+                <div style={{ height:'100%', width:`${barW}%`, background: f.isMe?'linear-gradient(90deg,#ffc400,#ff8c00)':i===0?'rgba(255,196,0,0.35)':'rgba(255,255,255,0.18)', borderRadius:5, transition:'width 0.5s ease' }}/>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 친구 추가 */}
+      <button onClick={() => setShowInvite(true)} style={{ width:'100%', padding:'14px', background:'rgba(255,255,255,0.04)', border:'1.5px dashed rgba(255,255,255,0.15)', borderRadius:14, fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.4)', cursor:'pointer' }}>
+        + 친구 초대하기
+      </button>
+    </div>
+
+    {/* 초대 바텀시트 */}
+    {showInvite && (
+      <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(8px)', display:'flex', alignItems:'flex-end', zIndex:300 }}
+        onClick={() => setShowInvite(false)}>
+        <div onClick={e => e.stopPropagation()} style={{ width:'100%', background:'#1a1a26', borderRadius:'24px 24px 0 0', padding:'28px 24px 44px', border:'1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ width:40, height:4, borderRadius:4, background:'rgba(255,255,255,0.15)', margin:'0 auto 20px' }}/>
+          <div style={{ fontSize:18, fontWeight:900, color:'#fff', marginBottom:6 }}>친구 초대하기</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:20 }}>링크를 공유하면 친구가 앱을 설치하고<br/>자동으로 친구 목록에 추가돼요.</div>
+          <div style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, padding:'12px 14px', marginBottom:16, display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ flex:1, fontSize:12, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>gabba.app/invite/jimin_847</div>
+            <button onClick={copyLink} style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', background: linkCopied ? '#00c853' : '#ffc400', fontSize:12, fontWeight:800, color:'#000', flexShrink:0, transition:'background 0.2s' }}>
+              {linkCopied ? '✓ 복사됨' : '복사'}
+            </button>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <button style={{ width:'100%', padding:'14px 16px', borderRadius:14, background:'rgba(254,229,0,0.12)', border:'1.5px solid rgba(254,229,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, fontSize:15, fontWeight:700, color:'#f9e000', cursor:'pointer' }}>
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="#f9e000"><path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.73 1.67 5.13 4.19 6.57L5.1 21l4.44-2.33c.8.18 1.62.27 2.46.27 5.52 0 10-3.48 10-7.94C22 6.48 17.52 3 12 3z"/></svg>
+              카카오톡으로 초대
+            </button>
+            <button style={{ width:'100%', padding:'14px 16px', borderRadius:14, background:'rgba(255,255,255,0.07)', border:'1.5px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, fontSize:15, fontWeight:700, color:'#fff', cursor:'pointer' }}>
+              💬 문자로 초대
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
+  );
+}
+/* ── Screen: 알림 ── */
+function ScreenNotifications({ onBack }) {
+  const notifications = [
+    { id:1, type:'friend_pr', icon:'🔥', title:'이지훈이 내 최고기록을 경신했어요!', body:'이지훈: 45개 (내 기록: 42개)', time:'방금 전', color:'#ff6060', unread:true },
+    { id:2, type:'streak', icon:'⚡', title:'오늘 운동 안 하면 12일 연속이 끊겨요!', body:'저녁 9시까지 운동하세요', time:'2시간 전', color:'#ffc400', unread:true },
+    { id:3, type:'friend_stage', icon:'🏆', title:'박민준이 5단계로 진화했어요!', body:'박민준: 근육질 단계 달성', time:'어제', color:'#a855f7', unread:false },
+    { id:4, type:'pr', icon:'🎉', title:'내 최고기록 갱신! 42개', body:'이전 기록 38개에서 +4개 향상', time:'어제', color:'#00c853', unread:false },
+    { id:5, type:'friend_workout', icon:'💪', title:'박민준이 오늘 120개를 했어요', body:'자극받으셨나요? 지금 운동 시작!', time:'2일 전', color:'#00c3ff', unread:false },
+    { id:6, type:'challenge', icon:'💯', title:'100개 챌린지 42% 달성 중', body:'앞으로 58개만 더!', time:'3일 전', color:'#ffc400', unread:false },
+  ];
+
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ display:'flex', alignItems:'center', gap:12, padding:'52px 20px 16px' }}>
+        <button onClick={onBack} style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer', fontSize:18, color:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center' }}>←</button>
+        <div style={{ fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.02em' }}>알림</div>
+        <div style={{ marginLeft:'auto', background:'rgba(255,100,100,0.15)', border:'1px solid rgba(255,100,100,0.3)', borderRadius:10, padding:'3px 10px', fontSize:11, fontWeight:800, color:'#ff6060' }}>
+          2 새 알림
+        </div>
+      </div>
+      <div style={{ flex:1, overflowY:'auto', padding:'0 20px 36px' }}>
+        {notifications.map(n => (
+          <div key={n.id} style={{
+            display:'flex', alignItems:'flex-start', gap:12,
+            padding:'14px', marginBottom:8, borderRadius:14,
+            background: n.unread ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${n.unread ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'}`,
+            position:'relative',
+          }}>
+            {/* 읽지 않음 점 */}
+            {n.unread && <div style={{ position:'absolute', top:14, right:14, width:6, height:6, borderRadius:'50%', background:'#ffc400' }}/>}
+            {/* 아이콘 */}
+            <div style={{ width:44, height:44, borderRadius:12, background:`${n.color}18`, border:`1px solid ${n.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>{n.icon}</div>
+            {/* 내용 */}
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:3, lineHeight:1.4 }}>{n.title}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginBottom:4 }}>{n.body}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>{n.time}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenPR({ onNext }) {
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ display:'flex', alignItems:'center', gap:12, padding:'52px 20px 16px' }}>
+        <div style={{ width:48, height:48, background:'linear-gradient(135deg,#ffc400,#ff8c00)', borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, flexShrink:0 }}>🏆</div>
+        <div><div style={{ fontSize:15, fontWeight:800, color:'#fff' }}>1회 최고기록 갱신!</div><div style={{ fontSize:13, color:'rgba(255,255,255,0.4)' }}>방금 전 · 오늘 운동에서</div></div>
+        <div style={{ marginLeft:'auto', fontSize:11, color:'rgba(255,255,255,0.2)' }}>지금</div>
+      </div>
+      <div style={{ height:1, background:'rgba(255,255,255,0.07)', margin:'0 20px' }}/>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'24px 20px 0', textAlign:'center' }}>
+        <div style={{ fontSize:60, marginBottom:10, filter:'drop-shadow(0 0 20px rgba(255,196,0,0.5))' }}>🥇</div>
+        <div style={{ fontSize:26, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', marginBottom:6 }}>새 최고기록!</div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,0.45)', lineHeight:1.6, marginBottom:20 }}>한 세트 최대 횟수 기록을<br/>4개나 경신했어요 🎉</div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:20, marginBottom:24, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'18px 28px', width:'100%' }}>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:32, fontWeight:900, color:'rgba(255,255,255,0.2)', textDecoration:'line-through' }}>38</div><div style={{ fontSize:11, color:'rgba(255,255,255,0.2)', marginTop:2 }}>이전 기록</div></div>
+          <div style={{ fontSize:24, color:'#ffc400' }}>→</div>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:40, fontWeight:900, color:'#ffc400', letterSpacing:'-0.04em' }}>42개</div><div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:2 }}>신기록 🆕</div></div>
+        </div>
+        <div style={{ width:'100%' }}>
+          <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,0.35)', marginBottom:10, textAlign:'left' }}>1회 최고기록 히스토리</div>
+          {[{date:'오늘',n:'42개',best:true},{date:'4월 20일',n:'38개'},{date:'4월 13일',n:'33개'},{date:'4월 1일',n:'28개'}].map((r,i)=>(
+            <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+              <span style={{ fontSize:13, color:'rgba(255,255,255,0.35)' }}>{r.date}</span>
+              <span style={{ fontSize:13, fontWeight:r.best?800:500, color:r.best?'#ffc400':'#fff' }}>{r.n} {r.best?'🏆':''}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding:'20px 20px 36px', marginTop:'auto' }}><BtnPrimary onClick={onNext}>기록 화면으로 이동</BtnPrimary></div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenChallenge({ onNav }) {
+  const challenges = [
+    { id:1, icon:'💯', title:'100개 챌린지', desc:'한 번에 무휴식으로 100개', progress:42, goal:100, reward:'골드 크라운 아이템', active:true },
+    { id:2, icon:'📅', title:'30일 챌린지', desc:'매일 빠짐없이 30일 연속', progress:12, goal:30, reward:'갑빠왕 특별 의상', active:true },
+    { id:3, icon:'⚡', title:'스피드 챌린지', desc:'1분 안에 최대한 많이', progress:0, goal:1, reward:'번개 효과 아이템', active:false },
+  ];
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ padding:'52px 20px 12px' }}>
+        <div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', marginBottom:4 }}>챌린지</div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,0.4)' }}>달성하면 캐릭터 아이템 보상!</div>
+      </div>
+      <div style={{ flex:1, overflowY:'auto', padding:'0 20px 100px' }}>
+        {challenges.map(c=>(
+          <div key={c.id} style={{ background:c.active?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.02)', border:`1px solid ${c.active?'rgba(255,255,255,0.1)':'rgba(255,255,255,0.05)'}`, borderRadius:18, padding:18, marginBottom:12, opacity:c.active?1:0.5 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:14 }}>
+              <div style={{ width:50, height:50, borderRadius:14, background:'rgba(255,196,0,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26 }}>{c.icon}</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:16, fontWeight:800, color:'#fff', marginBottom:3 }}>{c.title}</div>
+                <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>{c.desc}</div>
+              </div>
+              {c.active&&<div style={{ fontSize:11, fontWeight:700, color:'#ffc400', background:'rgba(255,196,0,0.1)', padding:'4px 10px', borderRadius:10 }}>진행 중</div>}
+            </div>
+            {c.active&&<><div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'rgba(255,255,255,0.4)', marginBottom:6 }}><span>진행도</span><span style={{ fontWeight:700, color:'#fff' }}>{c.progress} / {c.goal}</span></div><ProgressBar value={c.progress} max={c.goal} height={6}/></>}
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:12, fontSize:12, color:'rgba(255,255,255,0.35)' }}>🎁 보상: <span style={{ color:'#ffc400', fontWeight:700 }}>{c.reward}</span></div>
+          </div>
+        ))}
+      </div>
+      <BottomNav active="challenge" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenCharacter({ onNav, onBack, charStage=3, totalPushups=847 }) {
+  const stageBoundaries = [0, 100, 500, 2000, 5000, 10000, 25000, 50000, 100000];
+  const stageData = [
+    {lv:1,label:'마른 체형'},{lv:2,label:'약간 다듬어진'},
+    {lv:3,label:'보통 운동인'},{lv:4,label:'단단한 체형'},
+    {lv:5,label:'근육질'},{lv:6,label:'대흉근 부각'},
+    {lv:7,label:'갑빠 형태 완성'},{lv:8,label:'보디빌더형'},{lv:9,label:'갑빠왕'},
+  ].map(s => {
+    const lo = stageBoundaries[s.lv-1];
+    const hi = s.lv < 9 ? stageBoundaries[s.lv] - 1 : null;
+    const range = hi === null ? `${lo.toLocaleString()}+` : `${lo.toLocaleString()}–${hi.toLocaleString()}`;
+    return {
+      ...s,
+      range,
+      done: s.lv < charStage,
+      current: s.lv === charStage,
+    };
+  });
+  const curStageLabel = stageData[charStage-1]?.label ?? '';
+  const curThreshold = stageBoundaries[charStage-1] ?? 0;
+  const nextThreshold = stageBoundaries[charStage] ?? stageBoundaries[stageBoundaries.length-1];
+  const remainingToNext = Math.max(0, nextThreshold - totalPushups);
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ padding:'52px 20px 0', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <button onClick={onBack} style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer', fontSize:18, color:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center' }}>←</button>
+          <div style={{ fontSize:22, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>나의 갑빠</div>
+        </div>
+        <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', fontWeight:600 }}>누적 {totalPushups.toLocaleString()}개</div>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'16px 20px 12px', background:'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(255,196,0,0.07) 0%, transparent 70%)' }}>
+        <GabpaChar stage={charStage} size={100} glow />
+        <div style={{ fontSize:17, fontWeight:800, color:'#fff', marginTop:12 }}>갑빠지망생</div>
+        <div style={{ fontSize:14, color:'rgba(255,196,0,0.8)', fontWeight:700, marginBottom:12 }}>{curStageLabel}</div>
+        <div style={{ width:'100%' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:6 }}><span>{charStage}단계 → {Math.min(charStage+1,9)}단계</span><span style={{ color:'#ffc400', fontWeight:700 }}>레벨 업까지 {remainingToNext.toLocaleString()}개 남음</span></div>
+          <ProgressBar value={totalPushups - curThreshold} max={Math.max(1, nextThreshold - curThreshold)}/>
+        </div>
+      </div>
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 20px 100px' }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.3)', marginBottom:10, letterSpacing:'0.1em' }}>진화 로드맵</div>
+        {stageData.map(stage=>(
+          <div key={stage.lv} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', marginBottom:8, borderRadius:14, background:stage.current?'rgba(255,196,0,0.07)':'rgba(255,255,255,0.03)', border:`1px solid ${stage.current?'rgba(255,196,0,0.2)':'rgba(255,255,255,0.06)'}`, opacity:!stage.done&&!stage.current?0.4:1 }}>
+            <GabpaChar stage={stage.lv} size={40} />
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:14, fontWeight:700, color:stage.current?'#ffc400':stage.done?'#fff':'rgba(255,255,255,0.5)' }}>{stage.lv}단계 — {stage.label}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:2 }}>누적 {stage.range}개</div>
+            </div>
+            <div style={{ fontSize:18 }}>{stage.done?'✅':stage.current?'⚡':'🔒'}</div>
+          </div>
+        ))}
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ScreenSettings({ onNav }) {
+  const [notif, setNotif] = useState(true);
+  const [voice, setVoice] = useState(true);
+  const [vibrate, setVibrate] = useState(true);
+  const [dark, setDark] = useState(true);
+  const Toggle = ({ value, onChange }) => (
+    <div onClick={()=>onChange(!value)} style={{ width:44, height:24, borderRadius:12, background:value?'#ffc400':'rgba(255,255,255,0.15)', position:'relative', cursor:'pointer', transition:'background 0.2s', flexShrink:0 }}>
+      <div style={{ position:'absolute', top:3, left:value?23:3, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left 0.2s', boxShadow:'0 1px 3px rgba(0,0,0,0.3)' }}/>
+    </div>
+  );
+  const Row = ({ icon, label, right }) => (
+    <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+      <span style={{ fontSize:20, width:28, textAlign:'center' }}>{icon}</span>
+      <span style={{ flex:1, fontSize:15, color:'#fff', fontWeight:500 }}>{label}</span>
+      {right}
+    </div>
+  );
+  return (
+    <div style={{ width:'100%', height:'100%', background:'#0a0a12', display:'flex', flexDirection:'column' }}>
+      <StatusBar />
+      <div style={{ padding:'52px 20px 12px' }}><div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-0.03em' }}>설정</div></div>
+      <div style={{ flex:1, overflowY:'auto', padding:'0 20px 100px' }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.12em', marginBottom:4, marginTop:8 }}>계정</div>
+        <Row icon="👤" label="갑빠지망생" right={<span style={{ fontSize:12, color:'rgba(255,255,255,0.3)' }}>편집 →</span>}/>
+        <Row icon="📧" label="gabba@gmail.com" right={null}/>
+        <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.12em', marginBottom:4, marginTop:20 }}>알림</div>
+        <Row icon="🔔" label="운동 리마인더" right={<Toggle value={notif} onChange={setNotif}/>}/>
+        <Row icon="🔥" label="연속 운동일 끊길 위기 알림" right={<Toggle value={true} onChange={()=>{}}/>}/>
+        <Row icon="🏆" label="1회 최고기록 갱신 알림" right={<Toggle value={true} onChange={()=>{}}/>}/>
+        <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.12em', marginBottom:4, marginTop:20 }}>운동 설정</div>
+        <Row icon="🎙️" label="음성 카운트" right={<Toggle value={voice} onChange={setVoice}/>}/>
+        <Row icon="⏱️" label="기본 휴식 시간" right={<span style={{ fontSize:13, color:'#ffc400', fontWeight:700 }}>60초 →</span>}/>
+        <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.12em', marginBottom:4, marginTop:20 }}>개인정보</div>
+        <div style={{ background:'rgba(0,195,255,0.06)', border:'1px solid rgba(0,195,255,0.15)', borderRadius:12, padding:'12px 14px', marginBottom:12 }}>
+          <div style={{ fontSize:12, color:'#00c3ff', fontWeight:700, marginBottom:4 }}>🔒 카메라 영상 처리 방식</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', lineHeight:1.6 }}>모든 카메라 영상은 기기에서만 처리되며, 서버로 전송되지 않습니다.</div>
+        </div>
+        <Row icon="🗑️" label="계정 삭제" right={<span style={{ fontSize:13, color:'#ff4444', fontWeight:600 }}>삭제 →</span>}/>
+      </div>
+      <BottomNav active="settings" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   SCREEN REGISTRY + NAVIGATION GRAPH
+══════════════════════════════════════ */
+
+// All screens in order
+const SCREEN_ORDER = [
+  'splash','onboarding','signup',
+  'home','workoutstart','workout','result','levelup',
+  'record','pr','challenge','character','settings','notifications',
+];
+
+const SCREEN_LABELS = {
+  splash: '스플래시', onboarding: '온보딩', signup: '회원가입',
+  home: '홈', workoutstart: '운동 시작', workout: '운동 중', result: '운동 결과', levelup: '레벨업',
+  record: '기록/통계', pr: '최고기록 갱신', challenge: '챌린지', character: '캐릭터', settings: '설정', notifications: '알림',
+};
+
+const FLOW_GROUPS = [
+  { label: '온보딩', color: '#ffc400', screens: ['splash','onboarding','signup'] },
+  { label: '운동 플로우', color: '#00c3ff', screens: ['home','workoutstart','workout','result','levelup'] },
+  { label: '기록/성장', color: '#a855f7', screens: ['record','pr','challenge','character','settings','notifications'] },
+];
+
+/* ══════════════════════════════════════
+   ANDROID STATUS BAR (Android-style)
+══════════════════════════════════════ */
+function AndroidStatusBar() {
+  return (
+    <div style={{
+      position: 'absolute', top: 0, left: 0, right: 0,
+      height: 44, display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', padding: '0 20px',
+      zIndex: 100, pointerEvents: 'none',
+    }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>9:41</span>
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        {/* Signal dots */}
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="rgba(255,255,255,0.8)">
+          <rect x="0" y="5" width="3" height="6" rx="1" opacity="0.4"/>
+          <rect x="4.5" y="3" width="3" height="8" rx="1" opacity="0.65"/>
+          <rect x="9" y="0.5" width="3" height="10.5" rx="1"/>
+        </svg>
+        {/* WiFi */}
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="rgba(255,255,255,0.8)">
+          <path d="M7.5 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/>
+          <path d="M3.5 5.5C4.9 4.1 6.6 3.5 7.5 3.5s2.6.6 4 2" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" fill="none" opacity="0.7"/>
+          <path d="M1 3C2.8 1.1 5 0 7.5 0s4.7 1.1 6.5 3" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" fill="none" opacity="0.4"/>
+        </svg>
+        {/* Battery */}
+        <svg width="25" height="11" viewBox="0 0 25 11" fill="none">
+          <rect x="0.5" y="0.5" width="21" height="10" rx="2.5" stroke="rgba(255,255,255,0.6)"/>
+          <rect x="22" y="3" width="2.5" height="5" rx="1" fill="rgba(255,255,255,0.4)"/>
+          <rect x="2" y="2" width="16" height="7" rx="1.5" fill="rgba(255,255,255,0.85)"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   TRANSITION MANAGER
+══════════════════════════════════════ */
+function TransitionScreen({ children, screenKey, direction }) {
+  const [visible, setVisible] = useState(children);
+  const [animClass, setAnimClass] = useState('');
+  const prevRef = useRef(screenKey);
+
+  useEffect(() => {
+    if (screenKey === prevRef.current) return;
+    setAnimClass('screen-enter');
+    const t = setTimeout(() => {
+      setVisible(children);
+      setAnimClass('');
+      prevRef.current = screenKey;
+    }, 260);
+    return () => clearTimeout(t);
+  }, [screenKey]);
+
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div className={animClass} style={{ width: '100%', height: '100%' }}>
+        {visible}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════ */
+function App() {
+  const [screen, setScreen] = useState('splash');
+  const [workoutData, setWorkoutData] = useState(null);
+  const [charStage, setCharStage] = useState(3);
+  const [totalPushups, setTotalPushups] = useState(847);
+  const [recordTab, setRecordTab] = useState('1rm');
+  const [showSpec, setShowSpec] = useState(false);
+  const [workoutConfig, setWorkoutConfig] = useState({ mode:'free', targetCount:[30,25,20], targetSets:3 });
+  const prevScreen = useRef('splash');
+
+  const go = useCallback((s) => {
+    prevScreen.current = screen;
+    setScreen(s);
+  }, [screen]);
+
+  const goNav = useCallback((navId) => {
+    const map = {
+      home: 'home', record: 'record',
+      challenge: 'challenge', character: 'character', settings: 'settings',
+    };
+    if (map[navId]) go(map[navId]);
+  }, [go]);
+
+  // Screen renderer
+  const renderScreen = () => {
+    switch (screen) {
+      case 'splash':      return <ScreenSplash onNext={() => go('onboarding')} />;
+      case 'onboarding':  return <ScreenOnboarding onNext={() => go('signup')} />;
+      case 'signup':      return <ScreenSignup onNext={() => go('home')} />;
+      case 'goal':        return <ScreenGoalSetup onNext={() => go('home')} />;
+      case 'home':        return <ScreenHome onNav={goNav} onStartWorkout={() => go('workoutstart')} onNotif={() => go('notifications')} onCharacter={() => go('character')} onStatClick={(tab) => { setRecordTab(tab); go('record'); }} charStage={charStage} totalPushups={totalPushups} streak={12}/>;
+      case 'workoutstart': return <ScreenWorkoutStart onBack={() => go('home')} onStart={(cfg) => { setWorkoutConfig(cfg); go('workout'); }}/>;      
+      case 'workout':     return <ScreenWorkout config={workoutConfig} onFinish={(data) => { setWorkoutData(data); go('result'); }}/>;
+      case 'result':      return <ScreenResult data={workoutData ?? {}} charStage={charStage} totalPushups={totalPushups} onLevelUp={() => { setCharStage(s => Math.min(s + 1, 9)); go('levelup'); }} onHome={() => {
+        const gained = workoutData?.total ?? 0;
+        const newTotal = totalPushups + gained;
+        setTotalPushups(newTotal);
+        const nextStageAt = [0,100,500,2000,5000,10000,25000,50000,100000];
+        if (newTotal >= nextStageAt[charStage]) { setCharStage(s => Math.min(s+1, 9)); go('levelup'); }
+        else { go('home'); }
+      }}/>;
+      case 'levelup':     return <ScreenLevelUp newStage={charStage} onNext={() => go('home')}/>;
+      case 'record':      return <ScreenRecord key={recordTab} onNav={goNav} onPR={() => go('pr')} initialTab={recordTab}/>;
+      case 'pr':          return <ScreenPR onNext={() => go('record')}/>;
+      case 'challenge':   return <ScreenChallenge onNav={goNav}/>;
+      case 'character':   return <ScreenCharacter onNav={goNav} onBack={() => go('home')} charStage={charStage} totalPushups={totalPushups}/>;
+      case 'settings':    return <ScreenSettings onNav={goNav}/>;
+      case 'notifications': return <ScreenNotifications onBack={() => go('home')}/>;
+      default:            return <ScreenSplash onNext={() => go('onboarding')}/>;
+    }
+  };
+
+  const curIdx = SCREEN_ORDER.indexOf(screen);
+
+  return (
+    <div className="wrapper">
+      {/* Android Phone */}
+      <div className="android-shell">
+        <div className="android-notch"/>
+        <div className="screen-viewport">
+          <TransitionScreen screenKey={screen} direction={1}>
+            {renderScreen()}
+          </TransitionScreen>
+        </div>
+        <div className="android-gesture-bar"/>
+      </div>
+
+      {/* Info Panel */}
+      <div className="info-panel">
+        {/* App title */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 6 }}>
+            INTERACTIVE PROTOTYPE
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+            내일은<br /><span style={{ color: '#ffc400' }}>갑빠왕</span>
+          </div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+            Android · v1.0 MVP
+          </div>
+        </div>
+
+        {/* Current screen */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>
+            현재 화면
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', background: 'rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px', display: 'inline-block' }}>
+            {SCREEN_LABELS[screen]}
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>
+              {curIdx + 1}/{SCREEN_ORDER.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Flow navigator */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 10 }}>
+            플로우 탐색
+          </div>
+          {FLOW_GROUPS.map(group => (
+            <div key={group.label} style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: group.color, marginBottom: 6, letterSpacing: '0.08em' }}>
+                {group.label}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {group.screens.map(s => (
+                  <button key={s} onClick={() => go(s)} style={{
+                    padding: '5px 9px', borderRadius: 8,
+                    background: screen === s ? group.color : 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${screen === s ? group.color : 'rgba(255,255,255,0.08)'}`,
+                    fontSize: 10, fontWeight: 700,
+                    color: screen === s ? '#000' : 'rgba(255,255,255,0.45)',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}>{SCREEN_LABELS[s]}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Hypothesis tags */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 10 }}>
+            검증 중인 가설
+          </div>
+          {[
+            { tag: 'A', color: '#ffc400', text: '즉각 보상 → D7 리텐션' },
+            { tag: 'C', color: '#a855f7', text: '데이터 자존감 → D30 잔류' },
+          ].map(h => (
+            <div key={h.tag} style={{
+              display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
+              padding: '8px 10px', borderRadius: 10,
+              background: `rgba(${h.color === '#ffc400' ? '255,196,0' : '168,85,247'},0.07)`,
+              border: `1px solid ${h.color}25`,
+            }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', background: h.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, color: '#000', flexShrink: 0 }}>{h.tag}</div>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>{h.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Spec toggle */}
+        <button onClick={() => setShowSpec(v => !v)} style={{
+          padding: '10px 14px', borderRadius: 10, width: '100%',
+          background: showSpec ? 'rgba(0,102,255,0.15)' : 'rgba(255,255,255,0.05)',
+          border: `1px solid ${showSpec ? 'rgba(0,102,255,0.3)' : 'rgba(255,255,255,0.08)'}`,
+          fontSize: 11, fontWeight: 700, color: showSpec ? '#4d94ff' : 'rgba(255,255,255,0.4)',
+          cursor: 'pointer', textAlign: 'left',
+        }}>
+          {showSpec ? '📐 스펙 오버레이 ON' : '📐 스펙 오버레이 OFF'}
+        </button>
+
+        {/* Spec notes */}
+        {showSpec && (
+          <div style={{ marginTop: 12, fontSize: 11, color: 'rgba(255,255,255,0.35)', lineHeight: 1.7,
+            background: 'rgba(0,102,255,0.06)', border: '1px solid rgba(0,102,255,0.15)', borderRadius: 10, padding: '10px 12px' }}>
+            <div style={{ fontWeight: 700, color: '#4d94ff', marginBottom: 4 }}>Design Spec — {SCREEN_LABELS[screen]}</div>
+            {getSpecNote(screen)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   SPEC NOTES (Figma-level)
+══════════════════════════════════════ */
+function getSpecNote(screen) {
+  const notes = {
+    splash: '배경: radial-gradient 중심 rgba(255,196,0,0.18)\n캐릭터: 100×100px, glow shadow\n애니: splashPop 0.6s cubic-bezier(0.34,1.56,0.64,1)\n자동 전환: 1.8s 후 온보딩',
+    onboarding: '슬라이드 3개. 도트 인디케이터 active width 24px\n캐릭터 130×130px, glow+pulse\n폰트: Title 28/900 −0.03em\n배경: 슬라이드별 accent radial gradient',
+    signup: 'Step indicator: 11px/700/+0.18em\n소셜 버튼: rgba(255,255,255,0.07) bg\n구분선: rgba(255,255,255,0.08)\n개인정보 배너: rgba(0,195,255,0.07)',
+    goal: 'Range slider: accentColor #ffc400\n목표 숫자: 28px/900/−0.04em #ffc400\n실력 선택: border 1.5px solid #ffc400 active\n캐릭터 프리뷰: 64×64px',
+    home: '상단 그리팅: Body1 18px\n캐릭터: 110×110px glow\n진화바: h6 gradient #ffc400→#ff8c00\n스탯 카드: 3열 flex gap:10\nCTA 버튼: 18px/800, boxShadow 0 4px 20px rgba(255,196,0,0.3)',
+    workoutstart: '모드 카드: border 1.5px solid #ffc400 active\n아이콘 컨테이너: 44×44 borderRadius 12\n라디오 버튼: 20×20 원형 inner dot 8×8\n목표 슬라이더: accentColor #ffc400\n세트 선택: 5버튼 flex gap:8\n자세 선택: 4버튼 flex gap:8',
+    calibration: '실루엣 가이드: SVG dashed stroke rgba(0,195,255,0.9)\n코너 가이드: 20×20 border\n정확도 바: h5 #00c3ff\n스텝 체크: 24×24 원형',
+    workout: '카운트: 92px/900 center\n스켈레톤 opacity 0.35\n폼 배지: h5 pill\n진행바: h3 gradient\n세트 칩: 32×32 borderRadius 10\n휴식 오버레이: blur(6px)',
+    result: '결과 숫자: 56px/900 −0.04em\nPR 배지: 10px/800 inline-flex\n세트 상세: borderBottom rgba(255,255,255,0.05)\n진화 배너: rgba(255,196,0,0.07) bg',
+    levelup: '파티클: 16개 floatUp animation\n캐릭터: 140×140px, charPulse animation\n단계명: 32px/900 −0.03em\n서브: 16px/700 #ffc400\nBG: radial gradient rgba(255,196,0,0.25)',
+    record: '탭: borderBottom 2px #ffc400 active\n바 차트: flex gap:4 h:70px\n최고값 바: gradient #ffc400→#ff8c00\nPR 칩: 11px/800 inline-flex',
+    pr: '비교 카드: flex center gap:20\n이전 PR: font-size 32 strikethrough opacity 0.2\n신기록: 40px/900 #ffc400\n히스토리: borderBottom rgba(255,255,255,0.05)',
+    challenge: '챌린지 카드: borderRadius 18\n진행 칩: "진행 중" 11px #ffc400 badge\n진행바: h6 gradient\n보상: 🎁 icon + #ffc400 텍스트',
+    character: '진화 로드맵 리스트\n캐릭터 썸네일: GabpaChar 40×40\ncurrent: border rgba(255,196,0,0.2)\nlocked: opacity 0.4\n잠금 아이콘: 🔒',
+    settings: '섹션 헤더: 11px/700/+0.12em opacity 0.3\n토글: 44×24 borderRadius 12\n토글 thumb: 18×18 translateX transition\n개인정보 배너: rgba(0,195,255,0.06)',
+  };
+  return (notes[screen] || '').split('\n').map((line, i) => (
+    <div key={i} style={{ marginBottom: 2 }}>• {line}</div>
+  ));
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
