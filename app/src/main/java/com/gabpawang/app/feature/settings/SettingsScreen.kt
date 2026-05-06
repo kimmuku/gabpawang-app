@@ -2,20 +2,16 @@ package com.gabpawang.app.feature.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.Composable
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.SectionTitle
 import com.gabpawang.app.ui.components.StatusBarSpacer
@@ -31,11 +27,6 @@ fun SettingsScreen(
     voiceEnabled: Boolean,
     onVoiceChange: (Boolean) -> Unit
 ) {
-    var pushNotif by remember { mutableStateOf(true) }
-    var workoutReminder by remember { mutableStateOf(false) }
-    var soundOn by remember { mutableStateOf(true) }
-    val voiceOn = voiceEnabled
-
     Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
@@ -46,25 +37,12 @@ fun SettingsScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
             ) {
-                SectionTitle("계정")
-                ItemRow(label = "프로필 편집", value = "푸쉬업왕", onClick = {})
-                ItemRow(label = "이메일", value = "user@gabpa.com", onClick = {})
-
-                SectionTitle("알림")
-                SwitchRow("푸시 알림", pushNotif) { pushNotif = it }
-                SwitchRow("운동 리마인더", workoutReminder) { workoutReminder = it }
-
                 SectionTitle("운동 설정")
-                SwitchRow("효과음", soundOn) { soundOn = it }
-                SwitchRow("음성 카운트", voiceOn) { onVoiceChange(it) }
+                SwitchRow("음성 카운트", voiceEnabled, onVoiceChange)
 
-                SectionTitle("개인정보")
-                ItemRow(label = "데이터 백업", value = "", onClick = {})
-                ItemRow(label = "이용 약관", value = "", onClick = {})
-                ItemRow(label = "버전", value = "1.0.0", onClick = null)
-                Spacer(Modifier.height(40.dp))
+                SectionTitle("앱 정보")
+                InfoRow(label = "버전", value = "1.0.0")
             }
             BottomNav(active = "settings", onNav = onNav)
         }
@@ -72,7 +50,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun ItemRow(label: String, value: String, onClick: (() -> Unit)?) {
+private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,9 +59,7 @@ private fun ItemRow(label: String, value: String, onClick: (() -> Unit)?) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, color = TextPrimary, fontSize = 14.sp)
-        if (value.isNotEmpty()) {
-            Text(value, color = TextSub, fontSize = 13.sp)
-        }
+        Text(value, color = TextSub, fontSize = 13.sp)
     }
     Box(
         modifier = Modifier

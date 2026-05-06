@@ -6,53 +6,37 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gabpawang.app.STAGE_BOUNDARIES
 import com.gabpawang.app.STAGE_NAMES
-import com.gabpawang.app.ui.components.BtnGhost
+import com.gabpawang.app.STAGE_SUBTITLES
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
-import com.gabpawang.app.ui.theme.BgCard
 import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BgSheet
-import com.gabpawang.app.ui.theme.BorderCard
-import com.gabpawang.app.ui.theme.KakaoYellow
 import com.gabpawang.app.ui.theme.TextPrimary
 import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
 fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
-    var showShare by remember { mutableStateOf(false) }
-    var shared by remember { mutableStateOf(false) }
     val threshold = STAGE_BOUNDARIES.getOrElse(newStage - 1) { 0 }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(Color(0x4DFFC400), Color(0x00FFC400), BgDark),
-                    radius = 800f
-                )
-            )
+            .background(BgDark)
     ) {
-        // Floating particles
         Particles()
 
         Column(
@@ -66,7 +50,6 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
             Text("⚡ 단계 진화!", color = Yellow, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Animated bobbing character
             val transition = rememberInfiniteTransition(label = "lvl")
             val offsetY by transition.animateFloat(
                 initialValue = 0f,
@@ -78,7 +61,7 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
                 label = "bob"
             )
             Box(modifier = Modifier.graphicsLayer { translationY = offsetY }) {
-                GabpaChar(stage = newStage, sizeDp = 160.dp, glow = true)
+                GabpaChar(stage = newStage, sizeDp = 160.dp)
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -89,7 +72,9 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
                 fontWeight = FontWeight.ExtraBold
             )
             Spacer(modifier = Modifier.height(6.dp))
-            Text(STAGE_NAMES[newStage], color = Yellow, fontSize = 16.sp)
+            Text(STAGE_NAMES[newStage], color = Yellow, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(STAGE_SUBTITLES[newStage], color = TextSub, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(14.dp))
             Text(
                 text = "누적 ${threshold}개 돌파를 축하해요!",
@@ -99,17 +84,6 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
 
             Spacer(modifier = Modifier.height(40.dp))
             BtnPrimary(text = "계속 성장하기 🚀", onClick = onNext)
-            Spacer(modifier = Modifier.height(8.dp))
-            BtnGhost(text = "💬 카카오로 자랑하기", onClick = { showShare = true })
-        }
-
-        if (showShare) {
-            ShareSheet(
-                stage = newStage,
-                shared = shared,
-                onClose = { showShare = false; shared = false },
-                onShare = { shared = true }
-            )
         }
     }
 }
@@ -142,72 +116,6 @@ private fun Particles() {
                     .clip(CircleShape)
                     .background(Yellow.copy(alpha = 0.7f))
             )
-        }
-    }
-}
-
-@Composable
-private fun ShareSheet(stage: Int, shared: Boolean, onClose: () -> Unit, onShare: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.55f))
-            .clickable { onClose() },
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-                .background(BgSheet)
-                .navigationBarsPadding()
-                .padding(20.dp)
-                .clickable(enabled = false) {},
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp, 4.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f))
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "카카오톡으로 자랑하기",
-                color = TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            // Share preview card
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(BgCard)
-                    .border(1.dp, BorderCard, RoundedCornerShape(14.dp))
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                GabpaChar(stage = stage, sizeDp = 80.dp, glow = true)
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "${stage}단계 ${STAGE_NAMES[stage]}",
-                    color = TextPrimary,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text("갑빠왕에서 진화했어요!", color = TextSub, fontSize = 12.sp)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            BtnPrimary(
-                text = if (shared) "✓ 공유했어요" else "카카오톡으로 보내기",
-                onClick = onShare,
-                color = if (shared) Yellow.copy(alpha = 0.6f) else KakaoYellow
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            BtnGhost(text = "이미지로 저장", onClick = {})
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }

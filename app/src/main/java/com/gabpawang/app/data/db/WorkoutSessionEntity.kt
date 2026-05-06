@@ -7,8 +7,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "workout_sessions")
 data class WorkoutSessionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val dateMillis: Long,   // System.currentTimeMillis() at session end
-    val totalReps: Int,     // total push-ups in this session
-    val sets: Int,          // number of sets
-    val durationSec: Int    // workout duration in seconds
+    val dateMillis: Long,
+    val totalReps: Int,
+    val sets: Int,
+    val durationSec: Int,
+    val setHistory: String = "",
+    val mode: String = ""  // "free", "target", "challenge"
 )

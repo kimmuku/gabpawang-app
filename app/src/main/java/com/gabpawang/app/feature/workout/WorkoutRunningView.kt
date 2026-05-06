@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.theme.BgCard
+import com.gabpawang.app.ui.theme.BgSheet
 import com.gabpawang.app.ui.theme.BorderCard
 import com.gabpawang.app.ui.theme.GreenAccent
 import com.gabpawang.app.ui.theme.RedAlert
@@ -178,7 +179,7 @@ fun RunningView(
                 Spacer(modifier = Modifier.height(40.dp))
                 BtnPrimary(text = "다시 시작 ▶", onClick = onSkipRest, color = GreenAccent)
                 Spacer(modifier = Modifier.height(10.dp))
-                BtnPrimary(text = "휴식 30초 연장", onClick = onExtendRest, color = TextSub.copy(alpha = 0.3f))
+                BtnPrimary(text = "휴식 30초 연장", onClick = onExtendRest, color = BgSheet)
             }
         }
     }

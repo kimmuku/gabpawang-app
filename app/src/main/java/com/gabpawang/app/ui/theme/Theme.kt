@@ -1,9 +1,12 @@
 package com.gabpawang.app.ui.theme
 
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 
 private val GabpaDarkColors = darkColorScheme(
     primary = Yellow,
@@ -26,7 +29,12 @@ fun PushUpCounterTheme(
 ) {
     MaterialTheme(
         colorScheme = GabpaDarkColors,
-        typography = Typography,
-        content = content
-    )
+        typography = Typography
+    ) {
+        CompositionLocalProvider(
+            LocalTextStyle provides TextStyle(fontFamily = Pretendard)
+        ) {
+            content()
+        }
+    }
 }

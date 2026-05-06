@@ -42,7 +42,7 @@ fun WorkoutResultScreen(
     result: WorkoutResult,
     charStage: Int,
     totalPushups: Int,
-    onHome: (adjustedTotal: Int) -> Unit
+    onHome: (adjustedTotal: Int, adjustedHistory: List<Int>) -> Unit
 ) {
     var adjustedHistory by remember { mutableStateOf(result.history) }
     val adjustedTotal = adjustedHistory.sum()
@@ -146,7 +146,7 @@ fun WorkoutResultScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            BtnPrimary(text = "홈으로 돌아가기", onClick = { onHome(adjustedTotal) })
+            BtnPrimary(text = "홈으로 돌아가기", onClick = { onHome(adjustedTotal, adjustedHistory) })
             Spacer(modifier = Modifier.height(40.dp))
         }
     }

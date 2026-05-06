@@ -1,7 +1,6 @@
 package com.gabpawang.app
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.gabpawang.app.data.WorkoutRepository
@@ -18,8 +17,6 @@ import com.gabpawang.app.data.db.WorkoutSessionEntity
  */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val repo: WorkoutRepository = (application as GabpaApplication).repository
-    private val authRepo get() = (getApplication<GabpaApplication>()).authRepository
-
     val totalPushups: StateFlow<Int> = repo.totalReps.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), 0
     )
@@ -37,39 +34,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     /** Persists a finished workout result to the database. */
-    fun saveWorkout(result: WorkoutResult) {
+    fun saveWorkout(result: WorkoutResult, mode: String = "") {
         viewModelScope.launch {
             repo.saveSession(
                 totalReps = result.total,
                 sets = result.sets,
-                durationSec = result.durationSec
+                durationSec = result.durationSec,
+                history = result.history,
+                mode = mode
             )
         }
     }
 
-    /** Starts Google sign-in flow via CredentialManager. Requires Activity context. */
-    fun signInWithGoogle(
-        context: Context,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            authRepo.signInWithGoogle()
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.message ?: "Google 로그인 실패") }
-        }
-    }
-
-    /** Starts Kakao sign-in flow via Kakao SDK. Requires Activity context. */
-    fun signInWithKakao(
-        context: Context,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            authRepo.signInWithKakao()
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.message ?: "카카오 로그인 실패") }
-        }
-    }
 }

@@ -19,13 +19,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.gabpawang.app.feature.challenge.ChallengeScreen
 import com.gabpawang.app.feature.character.CharacterScreen
 import com.gabpawang.app.feature.home.HomeScreen
 import com.gabpawang.app.feature.notifications.NotificationScreen
-import com.gabpawang.app.feature.onboarding.OnboardingScreen
-import com.gabpawang.app.feature.onboarding.SignupScreen
-import com.gabpawang.app.feature.onboarding.SplashScreen
 import com.gabpawang.app.feature.record.RecordScreen
 import com.gabpawang.app.feature.settings.SettingsScreen
 import com.gabpawang.app.feature.workout.LevelUpScreen
@@ -51,8 +47,6 @@ fun GabpaWangApp(
     val appState = remember { AppState() }
     val totalPushups by appVm.totalPushups.collectAsStateWithLifecycle()
     val charStage by appVm.charStage.collectAsStateWithLifecycle()
-    val streak by appVm.streak.collectAsStateWithLifecycle()
-    val oneRepMax by appVm.oneRepMax.collectAsStateWithLifecycle()
 
     var hasPermission by remember {
         mutableStateOf(
@@ -93,8 +87,6 @@ fun GabpaWangApp(
         appVm = appVm,
         totalPushups = totalPushups,
         charStage = charStage,
-        streak = streak,
-        oneRepMax = oneRepMax,
         context = context
     )
 }
@@ -106,43 +98,15 @@ private fun AppRouter(
     appVm: AppViewModel,
     totalPushups: Int,
     charStage: Int,
-    streak: Int,
-    oneRepMax: Int,
     context: android.content.Context
 ) {
     when (appState.screen) {
-        "splash" -> SplashScreen { appState.go("onboarding") }
-        "onboarding" -> OnboardingScreen { appState.go("signup") }
-        "signup" -> SignupScreen(
-            onNext = { appState.goRoot("home") },
-            onGoogleSignIn = {
-                appVm.signInWithGoogle(
-                    context = context,
-                    onSuccess = { appState.goRoot("home") },
-                    onError = { /* no-op: login failure is non-fatal */ }
-                )
-            },
-            onKakaoSignIn = {
-                appVm.signInWithKakao(
-                    context = context,
-                    onSuccess = { appState.goRoot("home") },
-                    onError = { /* no-op: login failure is non-fatal */ }
-                )
-            }
-        )
         "home" -> HomeScreen(
             charStage = charStage,
             totalPushups = totalPushups,
-            streak = streak,
-            oneRepMax = oneRepMax,
             onNav = { appState.goNav(it) },
             onStartWorkout = { appState.go("workoutStart") },
-            onNotif = { appState.go("notifications") },
-            onCharacter = { appState.go("character") },
-            onStatClick = { tab ->
-                appState.recordInitialTab = tab
-                appState.go("record")
-            }
+            onCharacter = { appState.go("character") }
         )
         "workoutStart" -> WorkoutStartScreen(
             onBack = { appState.back() },
@@ -161,11 +125,11 @@ private fun AppRouter(
             result = appState.workoutResult ?: WorkoutResult(0, 0, emptyList()),
             charStage = charStage,
             totalPushups = totalPushups,
-            onHome = { adjustedTotal ->
+            onHome = { adjustedTotal, adjustedHistory ->
                 val prevStage = charStage
                 appState.workoutResult?.let { result ->
-                    val finalResult = result.copy(total = adjustedTotal)
-                    appVm.saveWorkout(finalResult)
+                    val finalResult = result.copy(total = adjustedTotal, history = adjustedHistory)
+                    appVm.saveWorkout(finalResult, mode = appState.workoutConfig.mode)
                     val newTotal = totalPushups + adjustedTotal
                     val newStage = stageFor(newTotal)
                     if (newStage > prevStage) {
@@ -183,22 +147,17 @@ private fun AppRouter(
             newStage = appState.levelUpStage,
             onNext = { appState.goRoot("home") }
         )
-        "record" -> RecordScreen(
-            initialTab = appState.recordInitialTab,
-            onNav = { appState.goNav(it) }
-        )
+        "record" -> RecordScreen(onNav = { appState.goNav(it) })
         "character" -> CharacterScreen(
             charStage = charStage,
             totalPushups = totalPushups,
             onBack = { appState.back() }
         )
-        "challenge" -> ChallengeScreen(onNav = { appState.goNav(it) })
         "notifications" -> NotificationScreen(onBack = { appState.back() })
         "settings" -> SettingsScreen(
             onNav = { appState.goNav(it) },
             voiceEnabled = appState.voiceEnabled,
             onVoiceChange = { appState.voiceEnabled = it }
         )
-        else -> SplashScreen { appState.go("onboarding") }
     }
 }

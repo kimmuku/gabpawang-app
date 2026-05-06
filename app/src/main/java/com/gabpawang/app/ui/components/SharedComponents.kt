@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
@@ -112,7 +111,7 @@ fun GabpaProgressBar(
             .fillMaxWidth()
             .height(height)
             .clip(RoundedCornerShape(50))
-            .background(Color.White.copy(alpha = 0.08f))
+            .background(Color.White.copy(alpha = 0.15f))
     ) {
         // Base yellow fill
         Box(
@@ -206,7 +205,6 @@ private data class NavItem(val id: String, val label: String, val icon: ImageVec
 private val navItems = listOf(
     NavItem("home", "홈", Icons.Outlined.Home),
     NavItem("record", "기록", Icons.Outlined.BarChart),
-    NavItem("challenge", "챌린지", Icons.Outlined.EmojiEvents),
     NavItem("settings", "설정", Icons.Outlined.Settings)
 )
 

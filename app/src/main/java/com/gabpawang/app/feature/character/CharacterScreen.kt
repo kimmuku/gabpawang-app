@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gabpawang.app.STAGE_BOUNDARIES
 import com.gabpawang.app.STAGE_NAMES
+import com.gabpawang.app.STAGE_SUBTITLES
 import com.gabpawang.app.nextThresholdFor
 import com.gabpawang.app.thresholdFor
 import com.gabpawang.app.ui.components.BackHeader
@@ -63,6 +64,12 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
                     color = Yellow,
                     fontSize = 13.sp
                 )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = STAGE_SUBTITLES[charStage],
+                    color = TextSub,
+                    fontSize = 12.sp
+                )
                 Spacer(Modifier.height(16.dp))
                 GabpaProgressBar(value = pct.toFloat(), max = range.toFloat(), height = 8.dp)
                 Spacer(Modifier.height(6.dp))
@@ -86,7 +93,7 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                for (s in 1..9) {
+                for (s in 1..10) {
                     StageRow(
                         stage = s,
                         threshold = STAGE_BOUNDARIES[s - 1],
@@ -133,6 +140,11 @@ private fun StageRow(stage: Int, threshold: Int, cur: Int) {
                 color = txtColor,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = STAGE_SUBTITLES[stage],
+                color = TextSub.copy(alpha = alpha),
+                fontSize = 10.sp
             )
             Text(
                 text = "누적 ${threshold}회 이상",

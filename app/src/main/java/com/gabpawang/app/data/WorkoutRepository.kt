@@ -18,14 +18,16 @@ class WorkoutRepository(db: GabpaDatabase) {
     val allSessions: Flow<List<WorkoutSessionEntity>> = dao.getAllSessions()
 
     /** Persists a completed session to Room and attempts cloud backup via Supabase. */
-    suspend fun saveSession(totalReps: Int, sets: Int, durationSec: Int) {
+    suspend fun saveSession(totalReps: Int, sets: Int, durationSec: Int, history: List<Int> = emptyList(), mode: String = "") {
         val dateMillis = System.currentTimeMillis()
         dao.insert(
             WorkoutSessionEntity(
                 dateMillis = dateMillis,
                 totalReps = totalReps,
                 sets = sets,
-                durationSec = durationSec
+                durationSec = durationSec,
+                setHistory = history.joinToString(","),
+                mode = mode
             )
         )
         SupabaseSync.uploadSession(

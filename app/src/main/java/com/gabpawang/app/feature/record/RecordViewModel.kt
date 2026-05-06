@@ -15,6 +15,7 @@ data class RecordUiState(
     val oneRepMax: Int = 0,
     val dailyAvg: Int = 0,
     val sessionsByDate: Map<String, Int> = emptyMap(),
+    val sessionDetailsByDate: Map<String, List<WorkoutSessionEntity>> = emptyMap(),
     val weeklyReps: List<Int> = List(7) { 0 },
     val weeklyLabels: List<String> = List(7) { "" },
     val monthlyReps: List<Int> = List(5) { 0 },
@@ -48,10 +49,9 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
         val monthLabelFmt = SimpleDateFormat("M월", Locale.getDefault())
         val dayOfWeekFmt = SimpleDateFormat("E", Locale.getDefault())
 
-        // Sessions grouped by date — sum totalReps per day
-        val byDate = sessions
-            .groupBy { fmt.format(Date(it.dateMillis)) }
-            .mapValues { (_, list) -> list.sumOf { it.totalReps } }
+        // Sessions grouped by date
+        val sessionsByDateRaw = sessions.groupBy { fmt.format(Date(it.dateMillis)) }
+        val byDate = sessionsByDateRaw.mapValues { (_, list) -> list.sumOf { it.totalReps } }
 
         // 1RM estimate: max (totalReps / sets) across all sessions
         val oneRepMax = sessions.maxOfOrNull { s ->
@@ -103,6 +103,7 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
             oneRepMax = oneRepMax,
             dailyAvg = dailyAvg,
             sessionsByDate = byDate,
+            sessionDetailsByDate = sessionsByDateRaw,
             weeklyReps = weeklyReps,
             weeklyLabels = weeklyLabels,
             monthlyReps = monthlyReps,

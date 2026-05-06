@@ -21,41 +21,57 @@ data class WorkoutConfig(
 )
 
 /** Stage thresholds — index 0 corresponds to stage 1 boundary. */
-val STAGE_BOUNDARIES = intArrayOf(0, 100, 500, 2000, 5000, 10000, 25000, 50000, 100000)
+val STAGE_BOUNDARIES = intArrayOf(0, 100, 500, 2000, 5000, 10000, 25000, 50000, 100000, 200000)
 
 /** Stage names indexed from 1 (index 0 is unused). */
 val STAGE_NAMES = arrayOf(
     "",
-    "마른 체형",
-    "약간 다듬어진",
-    "보통 운동인",
-    "단단한 체형",
-    "근육질",
-    "대흉근 부각",
-    "갑빠 형태 완성",
-    "보디빌더형",
-    "갑빠왕"
+    "초보의 시작",
+    "의욕 충만",
+    "훈련생",
+    "탄탄한 기초",
+    "갑빠의 각성",
+    "강한 전사",
+    "엘리트 챔피언",
+    "왕의 위엄",
+    "전설의 경지",
+    "최강! 갑빠왕"
 )
 
-/** Returns the current stage (1..9) based on accumulated push-ups. */
+/** Stage subtitles indexed from 1 (index 0 is unused). */
+val STAGE_SUBTITLES = arrayOf(
+    "",
+    "작지만 용감한 도전자!",
+    "조금씩 강해지는 중!",
+    "땀 흘리며 성장 중!",
+    "기본이 잡히는 단계!",
+    "가슴이 커지기 시작!",
+    "싸울 준비 완료!",
+    "모두가 인정하는 강자!",
+    "누구도 넘볼 수 없는 존재!",
+    "한계를 초월한 왕!",
+    "푸시업의 신! 전설의 완성!"
+)
+
+/** Returns the current stage (1..10) based on accumulated push-ups. */
 fun stageFor(total: Int): Int {
     var stage = 1
     for ((idx, threshold) in STAGE_BOUNDARIES.withIndex()) {
         if (total >= threshold) stage = idx + 1
     }
-    return stage.coerceIn(1, 9)
+    return stage.coerceIn(1, 10)
 }
 
-/** Returns the threshold for a given stage (1..9). */
+/** Returns the threshold for a given stage (1..10). */
 fun thresholdFor(stage: Int): Int {
-    val s = stage.coerceIn(1, 9)
+    val s = stage.coerceIn(1, 10)
     return STAGE_BOUNDARIES[s - 1]
 }
 
 /** Returns the threshold of the next stage, or current threshold if already maxed. */
 fun nextThresholdFor(stage: Int): Int {
-    val s = stage.coerceIn(1, 9)
-    return if (s >= 9) STAGE_BOUNDARIES[8] else STAGE_BOUNDARIES[s]
+    val s = stage.coerceIn(1, 10)
+    return if (s >= 10) STAGE_BOUNDARIES[9] else STAGE_BOUNDARIES[s]
 }
 
 /**
@@ -65,14 +81,13 @@ fun nextThresholdFor(stage: Int): Int {
  * result, levelup, record, character, challenge, notifications, settings.
  */
 class AppState {
-    private val backStack = mutableStateListOf("splash")
+    private val backStack = mutableStateListOf("home")
 
     val screen: String get() = backStack.last()
     val canGoBack: Boolean get() = backStack.size > 1
 
     var workoutResult by mutableStateOf<WorkoutResult?>(null)
     var workoutConfig by mutableStateOf(WorkoutConfig("free"))
-    var recordInitialTab by mutableStateOf("1rm")
     var levelUpStage by mutableStateOf(1)
     var voiceEnabled by mutableStateOf(false)
 
@@ -97,7 +112,6 @@ class AppState {
         when (id) {
             "home" -> goRoot("home")
             "record" -> goRoot("record")
-            "challenge" -> goRoot("challenge")
             "settings" -> goRoot("settings")
         }
     }

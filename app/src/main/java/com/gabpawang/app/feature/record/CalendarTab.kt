@@ -21,6 +21,7 @@ import com.gabpawang.app.ui.theme.Orange
 import com.gabpawang.app.ui.theme.TextPrimary
 import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
+import com.gabpawang.app.data.db.WorkoutSessionEntity
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -100,34 +101,78 @@ fun CalendarTab(uiState: RecordUiState) {
 
         Spacer(Modifier.height(16.dp))
 
-        val selectedCount = uiState.sessionsByDate[dateStr(selected)] ?: 0
-        Box(
+        val selectedSessions = uiState.sessionDetailsByDate[dateStr(selected)] ?: emptyList()
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
                 .background(BgCard)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column {
-                Text(
-                    text = "${month + 1}월 ${selected}일",
-                    color = TextPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(6.dp))
-                if (selectedCount > 0) {
-                    Text(
-                        text = "총 ${selectedCount}회",
-                        color = TextSub,
-                        fontSize = 12.sp
-                    )
-                } else {
-                    Text(
-                        text = "운동 기록 없음",
-                        color = TextSub,
-                        fontSize = 12.sp
-                    )
+            Text(
+                text = "${month + 1}월 ${selected}일",
+                color = TextPrimary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            if (selectedSessions.isEmpty()) {
+                Text("운동 기록 없음", color = TextSub, fontSize = 12.sp)
+            } else {
+                selectedSessions.forEachIndexed { sessionIdx, session ->
+                    val setCounts = session.setHistory
+                        .split(",")
+                        .filter { it.isNotBlank() }
+                        .mapNotNull { it.toIntOrNull() }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val modeLabel = when (session.mode) {
+                            "free" -> "자유 모드"
+                            "target" -> "목표 모드"
+                            "challenge" -> "챌린지"
+                            else -> null
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (selectedSessions.size > 1) {
+                                Text(
+                                    text = "운동 ${sessionIdx + 1}",
+                                    color = Yellow,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else {
+                                Spacer(Modifier.width(0.dp))
+                            }
+                            if (modeLabel != null) {
+                                Text(
+                                    text = modeLabel,
+                                    color = TextSub,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                        if (setCounts.isNotEmpty()) {
+                            setCounts.forEachIndexed { setIdx, reps ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("세트 ${setIdx + 1}", color = TextSub, fontSize = 12.sp)
+                                    Text("${reps}회", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("합계", color = TextSub, fontSize = 12.sp)
+                            Text("${session.totalReps}회", color = Yellow, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }

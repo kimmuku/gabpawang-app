@@ -47,13 +47,21 @@ fun WorkoutRunningScreen(
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
     DisposableEffect(Unit) {
         var tts: TextToSpeech? = null
+        var callbackFired = false
         tts = TextToSpeech(context) { status ->
+            callbackFired = true
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.KOREAN
+                tts?.setLanguage(Locale.KOREA)
                 ttsRef.value = tts
             }
         }
+        // If onInit fired synchronously (tts was null inside callback), wire it up now
+        if (callbackFired && ttsRef.value == null) {
+            tts?.setLanguage(Locale.KOREA)
+            ttsRef.value = tts
+        }
         onDispose {
+            tts?.stop()
             tts?.shutdown()
             ttsRef.value = null
         }
@@ -89,7 +97,7 @@ fun WorkoutRunningScreen(
     // Speak count on each rep if voice is enabled
     LaunchedEffect(repCount) {
         if (voiceEnabled && repCount > 0) {
-            ttsRef.value?.speak("$repCount", TextToSpeech.QUEUE_FLUSH, null, null)
+            ttsRef.value?.speak("$repCount", TextToSpeech.QUEUE_FLUSH, null, "rep_$repCount")
         }
     }
 

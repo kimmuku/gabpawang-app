@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.room.Room
 import com.gabpawang.app.data.WorkoutRepository
 import com.gabpawang.app.data.db.GabpaDatabase
+import com.gabpawang.app.data.db.MIGRATION_1_2
+import com.gabpawang.app.data.db.MIGRATION_2_3
 import com.gabpawang.app.data.remote.AuthRepository
 import com.gabpawang.app.data.remote.SupabaseSync
 import com.kakao.sdk.common.KakaoSdk
@@ -13,7 +15,9 @@ import kotlinx.coroutines.launch
 /** Application class that initializes Room, WorkoutRepository, AuthRepository, and SDKs. */
 class GabpaApplication : Application() {
     val database: GabpaDatabase by lazy {
-        Room.databaseBuilder(this, GabpaDatabase::class.java, "gabpa.db").build()
+        Room.databaseBuilder(this, GabpaDatabase::class.java, "gabpa.db")
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .build()
     }
     val repository: WorkoutRepository by lazy { WorkoutRepository(database) }
     val authRepository: AuthRepository by lazy { AuthRepository(this) }
