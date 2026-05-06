@@ -154,6 +154,7 @@ private fun AppRouter(
         "workout" -> WorkoutRunningScreen(
             config = appState.workoutConfig,
             vm = vm,
+            voiceEnabled = appState.voiceEnabled,
             onFinish = { appState.onWorkoutFinish(it) }
         )
         "result" -> WorkoutResultScreen(
@@ -193,7 +194,11 @@ private fun AppRouter(
         )
         "challenge" -> ChallengeScreen(onNav = { appState.goNav(it) })
         "notifications" -> NotificationScreen(onBack = { appState.back() })
-        "settings" -> SettingsScreen(onNav = { appState.goNav(it) })
+        "settings" -> SettingsScreen(
+            onNav = { appState.goNav(it) },
+            voiceEnabled = appState.voiceEnabled,
+            onVoiceChange = { appState.voiceEnabled = it }
+        )
         else -> SplashScreen { appState.go("onboarding") }
     }
 }

@@ -26,11 +26,15 @@ import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
-fun SettingsScreen(onNav: (String) -> Unit) {
+fun SettingsScreen(
+    onNav: (String) -> Unit,
+    voiceEnabled: Boolean,
+    onVoiceChange: (Boolean) -> Unit
+) {
     var pushNotif by remember { mutableStateOf(true) }
     var workoutReminder by remember { mutableStateOf(false) }
     var soundOn by remember { mutableStateOf(true) }
-    var voiceOn by remember { mutableStateOf(false) }
+    val voiceOn = voiceEnabled
 
     Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -54,7 +58,7 @@ fun SettingsScreen(onNav: (String) -> Unit) {
 
                 SectionTitle("운동 설정")
                 SwitchRow("효과음", soundOn) { soundOn = it }
-                SwitchRow("음성 카운트", voiceOn) { voiceOn = it }
+                SwitchRow("음성 카운트", voiceOn) { onVoiceChange(it) }
 
                 SectionTitle("개인정보")
                 ItemRow(label = "데이터 백업", value = "", onClick = {})

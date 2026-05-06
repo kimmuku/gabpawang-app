@@ -1,5 +1,6 @@
 package com.gabpawang.app.feature.workout
 
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,10 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import com.gabpawang.app.MainViewModel
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.WorkoutResult
 import kotlinx.coroutines.delay
+import java.util.Locale
 
 /**
  * Orchestrates the workout flow:
@@ -28,6 +31,7 @@ import kotlinx.coroutines.delay
 fun WorkoutRunningScreen(
     config: WorkoutConfig,
     vm: MainViewModel,
+    voiceEnabled: Boolean = false,
     onFinish: (WorkoutResult) -> Unit
 ) {
     var currentSet by remember { mutableStateOf(1) }
@@ -37,6 +41,23 @@ fun WorkoutRunningScreen(
     var restRemaining by remember { mutableStateOf(0) }
 
     val repCount by vm.repCount
+
+    // TTS for voice count
+    val context = LocalContext.current
+    val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
+    DisposableEffect(Unit) {
+        var tts: TextToSpeech? = null
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.KOREAN
+                ttsRef.value = tts
+            }
+        }
+        onDispose {
+            tts?.shutdown()
+            ttsRef.value = null
+        }
+    }
 
     // Reset on entry and start calibration immediately
     LaunchedEffect(Unit) {
@@ -62,6 +83,13 @@ fun WorkoutRunningScreen(
             }
             inRest = false
             vm.startCalibration()
+        }
+    }
+
+    // Speak count on each rep if voice is enabled
+    LaunchedEffect(repCount) {
+        if (voiceEnabled && repCount > 0) {
+            ttsRef.value?.speak("$repCount", TextToSpeech.QUEUE_FLUSH, null, null)
         }
     }
 

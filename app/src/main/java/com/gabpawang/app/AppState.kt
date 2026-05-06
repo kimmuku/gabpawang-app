@@ -74,6 +74,7 @@ class AppState {
     var workoutConfig by mutableStateOf(WorkoutConfig("free"))
     var recordInitialTab by mutableStateOf("1rm")
     var levelUpStage by mutableStateOf(1)
+    var voiceEnabled by mutableStateOf(false)
 
     /** Push a new screen onto the back stack. */
     fun go(s: String) {
