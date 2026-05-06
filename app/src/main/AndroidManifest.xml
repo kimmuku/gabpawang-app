@@ -6,7 +6,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.camera.front" android:required="true" />
 
+    <!-- Allow KakaoTalk app query for login availability check -->
+    <queries>
+        <package android:name="com.kakao.talk" />
+    </queries>
+
     <application
+        android:name=".GabpaApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,6 +21,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PushUpCounter">
+        <!-- Kakao SDK native app key -->
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="73af7802f9ee24065925157c33d9e031" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
