@@ -12,17 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gabpawang.app.ui.theme.BgDark
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.RedAlert
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
 internal fun PermissionScreen(onRequest: () -> Unit) {
-    Box(Modifier.fillMaxSize().background(BgDark), contentAlignment = Alignment.Center) {
+    val colors = LocalAppColors.current
+    Box(Modifier.fillMaxSize().background(colors.bgDark), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("카메라 권한이 필요합니다", color = TextPrimary, fontSize = 18.sp)
+            Text("카메라 권한이 필요합니다", color = colors.textPrimary, fontSize = 18.sp)
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = onRequest,
@@ -37,49 +36,52 @@ internal fun PermissionScreen(onRequest: () -> Unit) {
 
 @Composable
 internal fun StatusScreen(message: String) {
-    Box(Modifier.fillMaxSize().background(BgDark), contentAlignment = Alignment.Center) {
-        Text(message, color = TextPrimary, fontSize = 16.sp)
+    val colors = LocalAppColors.current
+    Box(Modifier.fillMaxSize().background(colors.bgDark), contentAlignment = Alignment.Center) {
+        Text(message, color = colors.textPrimary, fontSize = 16.sp)
     }
 }
 
 @Composable
 internal fun DownloadingScreen(progress: Float) {
-    Box(Modifier.fillMaxSize().background(BgDark), contentAlignment = Alignment.Center) {
+    val colors = LocalAppColors.current
+    Box(Modifier.fillMaxSize().background(colors.bgDark), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(32.dp)
         ) {
             Text(
                 "BlazePose 모델 다운로드 중",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(8.dp))
-            Text("처음 실행 시 1회만 (~9 MB)", color = TextSub, fontSize = 13.sp)
+            Text("처음 실행 시 1회만 (~9 MB)", color = colors.textSub, fontSize = 13.sp)
             Spacer(Modifier.height(24.dp))
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth().height(10.dp),
                 color = Yellow,
-                trackColor = TextSub
+                trackColor = colors.textSub
             )
             Spacer(Modifier.height(10.dp))
-            Text("${(progress * 100).toInt()}%", color = Yellow, fontSize = 14.sp)
+            Text("${(progress * 100).toInt()}%", color = colors.accent, fontSize = 14.sp)
         }
     }
 }
 
 @Composable
 internal fun ErrorScreen(message: String, onRetry: () -> Unit) {
-    Box(Modifier.fillMaxSize().background(BgDark), contentAlignment = Alignment.Center) {
+    val colors = LocalAppColors.current
+    Box(Modifier.fillMaxSize().background(colors.bgDark), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(24.dp)
         ) {
             Text("오류 발생", color = RedAlert, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
-            Text(message, color = TextSub, fontSize = 13.sp)
+            Text(message, color = colors.textSub, fontSize = 13.sp)
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onRetry,

@@ -17,12 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gabpawang.app.ui.components.BackHeader
 import com.gabpawang.app.ui.components.StatusBarSpacer
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BorderCard
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Orange
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 
 private data class Notif(
@@ -43,7 +39,8 @@ private val items = listOf(
 
 @Composable
 fun NotificationScreen(onBack: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    val colors = LocalAppColors.current
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
             BackHeader(title = "알림", onBack = onBack, subtitle = "새 알림 ${items.count { it.unread }}개")
@@ -68,13 +65,14 @@ fun NotificationScreen(onBack: () -> Unit) {
 
 @Composable
 private fun NotifCard(item: Notif) {
-    val bg = if (item.unread) Yellow.copy(alpha = 0.07f) else BgCard
+    val colors = LocalAppColors.current
+    val bg = if (item.unread) Yellow.copy(alpha = 0.07f) else colors.bgCard
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
-            .border(1.dp, BorderCard, RoundedCornerShape(14.dp))
+            .border(1.dp, colors.borderCard, RoundedCornerShape(14.dp))
             .padding(14.dp),
         verticalAlignment = Alignment.Top
     ) {
@@ -83,7 +81,7 @@ private fun NotifCard(item: Notif) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = item.title,
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
@@ -98,9 +96,9 @@ private fun NotifCard(item: Notif) {
                 }
             }
             Spacer(Modifier.height(4.dp))
-            Text(item.body, color = TextSub, fontSize = 12.sp)
+            Text(item.body, color = colors.textSub, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
-            Text(item.time, color = TextSub.copy(alpha = 0.6f), fontSize = 10.sp)
+            Text(item.time, color = colors.textSub.copy(alpha = 0.6f), fontSize = 10.sp)
         }
     }
 }

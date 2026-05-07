@@ -12,42 +12,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.gabpawang.app.R
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.ui.components.BackHeader
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.StatusBarSpacer
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BorderCard
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
-import com.gabpawang.app.ui.theme.Yellow
-
-private data class ModeOption(val id: String, val emoji: String, val title: String, val desc: String)
-
-private val modes = listOf(
-    ModeOption("free", "🔥", "자유 모드", "원하는 만큼 운동하세요"),
-    ModeOption("target", "🎯", "목표 모드", "세트별 목표 개수 설정"),
-    ModeOption("challenge", "💯", "챌린지 모드", "100개 한 번에 도전")
-)
+import com.gabpawang.app.ui.theme.LocalAppColors
 
 @Composable
 fun WorkoutStartScreen(
     onBack: () -> Unit,
     onStart: (WorkoutConfig) -> Unit
 ) {
+    val colors = LocalAppColors.current
     var selected by remember { mutableStateOf("free") }
     var sets by remember { mutableStateOf(3) }
     var counts by remember { mutableStateOf(listOf(30, 25, 20)) }
+    var timedMins by remember { mutableStateOf(2) }
 
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
-            BackHeader(title = "운동 시작", onBack = onBack)
+            BackHeader(title = "푸쉬업 시작", onBack = onBack)
 
             Column(
                 modifier = Modifier
@@ -58,7 +50,7 @@ fun WorkoutStartScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "모드 선택",
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -73,11 +65,59 @@ fun WorkoutStartScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
+                if (selected == "timed") {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "운동 시간",
+                        color = colors.textPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(1, 2, 3, 5, 10).forEach { m ->
+                            SetChip(text = "${m}분", selected = timedMins == m, onClick = { timedMins = m })
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(colors.bgCard)
+                            .border(1.dp, colors.borderCard, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("직접 설정", color = colors.textSub, fontSize = 13.sp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            CounterBtn(label = "−", enabled = timedMins > 1) {
+                                timedMins = (timedMins - 1).coerceAtLeast(1)
+                            }
+                            Text(
+                                text = "${timedMins}분",
+                                color = colors.accent,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.widthIn(min = 52.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            CounterBtn(label = "+", enabled = timedMins < 30) {
+                                timedMins = (timedMins + 1).coerceAtMost(30)
+                            }
+                        }
+                    }
+                }
+
                 if (selected == "target") {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "세트 수",
-                        color = TextPrimary,
+                        color = colors.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -91,48 +131,91 @@ fun WorkoutStartScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "세트별 횟수",
-                        color = TextPrimary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "세트별 횟수",
+                            color = colors.textPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf(10, 20, 30, 50).forEach { preset ->
+                                PresetChip(text = "${preset}") {
+                                    counts = counts.map { preset }
+                                }
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     counts.forEachIndexed { idx, c ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(BgCard)
-                                .border(1.dp, BorderCard, RoundedCornerShape(12.dp))
+                                .background(colors.bgCard)
+                                .border(1.dp, colors.borderCard, RoundedCornerShape(12.dp))
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("${idx + 1}세트", color = TextSub, fontSize = 13.sp)
+                            Text("${idx + 1}세트", color = colors.textSub, fontSize = 13.sp)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                CounterBtn(label = "−", enabled = c > 5) {
-                                    counts = counts.toMutableList().apply { this[idx] = (c - 5).coerceAtLeast(5) }
+                                CounterBtn(label = "−", enabled = c > 1) {
+                                    counts = counts.toMutableList().apply { this[idx] = (c - 1).coerceAtLeast(1) }
                                 }
                                 Text(
                                     text = "${c}개",
-                                    color = Yellow,
+                                    color = colors.accent,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.widthIn(min = 52.dp),
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
-                                CounterBtn(label = "+", enabled = c < 100) {
-                                    counts = counts.toMutableList().apply { this[idx] = (c + 5).coerceAtMost(100) }
+                                CounterBtn(label = "+", enabled = c < 200) {
+                                    counts = counts.toMutableList().apply { this[idx] = (c + 1).coerceAtMost(200) }
                                 }
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                var guideExpanded by remember { mutableStateOf(false) }
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(colors.bgCard)
+                        .border(1.dp, colors.borderCard, RoundedCornerShape(8.dp))
+                        .clickable { guideExpanded = !guideExpanded }
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text("📷", fontSize = 13.sp)
+                    Text("촬영 가이드", color = colors.textSub, fontSize = 13.sp)
+                    Text(if (guideExpanded) "▲" else "▼", color = colors.textSub, fontSize = 11.sp)
+                }
+                if (guideExpanded) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Image(
+                        painter = painterResource(R.drawable.pushup_guide),
+                        contentDescription = "촬영 가이드",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Box(modifier = Modifier.navigationBarsPadding().padding(horizontal = 20.dp, vertical = 16.dp)) {
@@ -141,7 +224,8 @@ fun WorkoutStartScreen(
                         WorkoutConfig(
                             mode = selected,
                             targetCounts = counts,
-                            targetSets = sets
+                            targetSets = sets,
+                            timedSecs = timedMins * 60
                         )
                     )
                 })
@@ -150,66 +234,3 @@ fun WorkoutStartScreen(
     }
 }
 
-@Composable
-private fun ModeCard(option: ModeOption, selected: Boolean, onClick: () -> Unit) {
-    val bg = if (selected) Yellow.copy(alpha = 0.10f) else BgCard
-    val border = if (selected) Yellow else BorderCard
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(bg)
-            .border(1.dp, border, RoundedCornerShape(14.dp))
-            .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = option.emoji, fontSize = 28.sp)
-        Spacer(modifier = Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = option.title,
-                color = if (selected) Yellow else TextPrimary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(text = option.desc, color = TextSub, fontSize = 12.sp)
-        }
-    }
-}
-
-@Composable
-private fun SetChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val bg = if (selected) Yellow else BgCard
-    val fg = if (selected) Color.Black else TextPrimary
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(bg)
-            .border(1.dp, if (selected) Yellow else BorderCard, RoundedCornerShape(50))
-            .clickable { onClick() }
-            .padding(horizontal = 18.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = text, color = fg, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun CounterBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
-    val bg = if (enabled) BgCard else BgCard.copy(alpha = 0.3f)
-    val fg = if (enabled) TextPrimary else TextSub.copy(alpha = 0.3f)
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(bg)
-            .border(1.dp, BorderCard, RoundedCornerShape(8.dp))
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = label, color = fg, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-    }
-}

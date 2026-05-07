@@ -23,19 +23,18 @@ import com.gabpawang.app.STAGE_NAMES
 import com.gabpawang.app.STAGE_SUBTITLES
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
 fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
+    val colors = LocalAppColors.current
     val threshold = STAGE_BOUNDARIES.getOrElse(newStage - 1) { 0 }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgDark)
+            .background(colors.bgDark)
     ) {
         Particles()
 
@@ -47,7 +46,7 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("⚡ 단계 진화!", color = Yellow, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("⚡ 단계 진화!", color = colors.accent, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(20.dp))
 
             val transition = rememberInfiniteTransition(label = "lvl")
@@ -67,18 +66,18 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
             Spacer(modifier = Modifier.height(28.dp))
             Text(
                 text = "${newStage}단계 달성!",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold
             )
             Spacer(modifier = Modifier.height(6.dp))
-            Text(STAGE_NAMES[newStage], color = Yellow, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(STAGE_NAMES[newStage], color = colors.accent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(6.dp))
-            Text(STAGE_SUBTITLES[newStage], color = TextSub, fontSize = 13.sp)
+            Text(STAGE_SUBTITLES[newStage], color = colors.textSub, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(14.dp))
             Text(
                 text = "누적 ${threshold}개 돌파를 축하해요!",
-                color = TextSub,
+                color = colors.textSub,
                 fontSize = 13.sp
             )
 

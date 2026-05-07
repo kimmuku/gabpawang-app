@@ -29,12 +29,8 @@ import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
 import com.gabpawang.app.ui.components.GabpaProgressBar
 import com.gabpawang.app.ui.components.StatusBarSpacer
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BorderCard
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Orange
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
@@ -44,6 +40,7 @@ fun WorkoutResultScreen(
     totalPushups: Int,
     onHome: (adjustedTotal: Int, adjustedHistory: List<Int>) -> Unit
 ) {
+    val colors = LocalAppColors.current
     var adjustedHistory by remember { mutableStateOf(result.history) }
     val adjustedTotal = adjustedHistory.sum()
     val newTotal = totalPushups + adjustedTotal
@@ -56,7 +53,7 @@ fun WorkoutResultScreen(
     val durMin = result.durationSec / 60
     val durSec = result.durationSec % 60
 
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -66,9 +63,9 @@ fun WorkoutResultScreen(
         ) {
             StatusBarSpacer()
             Spacer(modifier = Modifier.height(16.dp))
-            Text("운동 완료! 🎉", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text("운동 완료! 🎉", color = colors.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("오늘의 기록을 확인하세요", color = TextSub, fontSize = 13.sp)
+            Text("오늘의 기록을 확인하세요", color = colors.textSub, fontSize = 13.sp)
 
             Spacer(modifier = Modifier.height(24.dp))
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -77,12 +74,12 @@ fun WorkoutResultScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "$adjustedTotal",
-                        color = Yellow,
+                        color = colors.accent,
                         fontSize = 44.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("개", color = TextSub, fontSize = 18.sp)
+                    Text("개", color = colors.textSub, fontSize = 18.sp)
                 }
             }
 
@@ -106,11 +103,11 @@ fun WorkoutResultScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("세트별 기록", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("세트별 기록", color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 if (adjustedTotal != result.total) {
                     Text(
                         text = "AI 측정: ${result.total}개",
-                        color = TextSub.copy(alpha = 0.5f),
+                        color = colors.textSub.copy(alpha = 0.5f),
                         fontSize = 11.sp
                     )
                 }
@@ -154,38 +151,40 @@ fun WorkoutResultScreen(
 
 @Composable
 private fun SummaryCard(value: String, label: String, modifier: Modifier = Modifier) {
+    val colors = LocalAppColors.current
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(BgCard)
-            .border(1.dp, BorderCard, RoundedCornerShape(14.dp))
+            .background(colors.bgCard)
+            .border(1.dp, colors.borderCard, RoundedCornerShape(14.dp))
             .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(value, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+        Text(value, color = colors.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(label, color = TextSub, fontSize = 11.sp)
+        Text(label, color = colors.textSub, fontSize = 11.sp)
     }
 }
 
 @Composable
 private fun SetRow(idx: Int, count: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
+    val colors = LocalAppColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(BgCard)
-            .border(1.dp, BorderCard, RoundedCornerShape(12.dp))
+            .background(colors.bgCard)
+            .border(1.dp, colors.borderCard, RoundedCornerShape(12.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("${idx}세트", color = TextSub, fontSize = 13.sp)
+        Text("${idx}세트", color = colors.textSub, fontSize = 13.sp)
         Row(verticalAlignment = Alignment.CenterVertically) {
             AdjustBtn("−", enabled = count > 0, onClick = onMinus)
             Text(
                 text = "${count}개",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.widthIn(min = 52.dp),
@@ -205,12 +204,13 @@ private fun EvolutionCard(
     remaining: Int,
     nextThreshold: Int
 ) {
+    val colors = LocalAppColors.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(BgCard)
-            .border(1.dp, BorderCard, RoundedCornerShape(16.dp))
+            .background(colors.bgCard)
+            .border(1.dp, colors.borderCard, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Row(
@@ -218,7 +218,7 @@ private fun EvolutionCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("진화 진행도", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("진화 진행도", color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text("+${gained}개", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(10.dp))
@@ -235,12 +235,12 @@ private fun EvolutionCard(
         ) {
             Text(
                 text = "${stage}단계 · ${STAGE_NAMES[stage]}",
-                color = TextSub,
+                color = colors.textSub,
                 fontSize = 12.sp
             )
             Text(
                 text = "다음까지 ${remaining}개",
-                color = Yellow,
+                color = colors.accent,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -250,13 +250,14 @@ private fun EvolutionCard(
 
 @Composable
 private fun AdjustBtn(label: String, enabled: Boolean = true, onClick: () -> Unit) {
-    val fg = if (enabled) TextPrimary else TextSub.copy(alpha = 0.25f)
+    val colors = LocalAppColors.current
+    val fg = if (enabled) colors.textPrimary else colors.textSub.copy(alpha = 0.25f)
     Box(
         modifier = Modifier
             .size(32.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(BgCard)
-            .border(1.dp, BorderCard, RoundedCornerShape(8.dp))
+            .background(colors.bgCard)
+            .border(1.dp, colors.borderCard, RoundedCornerShape(8.dp))
             .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {

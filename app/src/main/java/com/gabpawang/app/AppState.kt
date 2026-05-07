@@ -15,9 +15,10 @@ data class WorkoutResult(
 
 /** Configuration for the about-to-start workout. */
 data class WorkoutConfig(
-    val mode: String, // "free", "target", "challenge"
+    val mode: String, // "free", "target", "challenge", "timed"
     val targetCounts: List<Int> = listOf(30, 25, 20),
-    val targetSets: Int = 3
+    val targetSets: Int = 3,
+    val timedSecs: Int = 120
 )
 
 /** Stage thresholds — index 0 corresponds to stage 1 boundary. */
@@ -75,13 +76,45 @@ fun nextThresholdFor(stage: Int): Int {
 }
 
 /**
+ * Returns estimated national top-% text based on max single-set reps (Korean adult male reference).
+ * Returns null when no record exists yet.
+ */
+fun nationalRankText(maxReps: Int): String? {
+    if (maxReps <= 0) return null
+    return when {
+        maxReps >= 100 -> "상위 약 0.2%"
+        maxReps >= 90  -> "상위 약 0.3%"
+        maxReps >= 80  -> "상위 약 0.5%"
+        maxReps >= 75  -> "상위 약 0.8%"
+        maxReps >= 70  -> "상위 약 1%"
+        maxReps >= 65  -> "상위 약 1.5%"
+        maxReps >= 60  -> "상위 약 2.5%"
+        maxReps >= 55  -> "상위 약 4.5%"
+        maxReps >= 50  -> "상위 약 7%"
+        maxReps >= 45  -> "상위 약 10%"
+        maxReps >= 40  -> "상위 약 14%"
+        maxReps >= 35  -> "상위 약 22%"
+        maxReps >= 30  -> "상위 약 32%"
+        maxReps >= 25  -> "상위 약 45%"
+        maxReps >= 20  -> "상위 약 57%"
+        maxReps >= 15  -> "상위 약 70%"
+        maxReps >= 10  -> "상위 약 85%"
+        maxReps >= 5   -> "상위 약 92%"
+        else           -> "하위권"
+    }
+}
+
+/**
  * Centralized navigation + transient UI state.
  * DB-backed values (charStage, totalPushups, streak) are owned by AppViewModel.
- * Screens: splash, onboarding, signup, home, workoutStart, workout,
+ * Screens: tutorial, home, workoutStart, workout,
  * result, levelup, record, character, challenge, notifications, settings.
+ *
+ * @param initialScreen the first screen to show; defaults to "home" but can be "tutorial"
+ *   for first-time users detected via SharedPreferences.
  */
-class AppState {
-    private val backStack = mutableStateListOf("home")
+class AppState(initialScreen: String = "home") {
+    private val backStack = mutableStateListOf(initialScreen)
 
     val screen: String get() = backStack.last()
     val canGoBack: Boolean get() = backStack.size > 1
@@ -89,7 +122,8 @@ class AppState {
     var workoutResult by mutableStateOf<WorkoutResult?>(null)
     var workoutConfig by mutableStateOf(WorkoutConfig("free"))
     var levelUpStage by mutableStateOf(1)
-    var voiceEnabled by mutableStateOf(false)
+    var voiceEnabled by mutableStateOf(true)
+    var isDarkTheme by mutableStateOf(true)
 
     /** Push a new screen onto the back stack. */
     fun go(s: String) {

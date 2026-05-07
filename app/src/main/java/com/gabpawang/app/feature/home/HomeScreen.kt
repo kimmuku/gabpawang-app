@@ -20,12 +20,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gabpawang.app.STAGE_NAMES
+import com.gabpawang.app.nationalRankText
 import com.gabpawang.app.nextThresholdFor
 import com.gabpawang.app.thresholdFor
 import com.gabpawang.app.feature.record.RecordViewModel
@@ -34,24 +34,20 @@ import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
 import com.gabpawang.app.ui.components.GabpaProgressBar
 import com.gabpawang.app.ui.components.StatusBarSpacer
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Yellow
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 @Composable
 fun HomeScreen(
     charStage: Int,
     totalPushups: Int,
+    oneRepMax: Int,
     onNav: (String) -> Unit,
     onStartWorkout: () -> Unit,
     onCharacter: () -> Unit,
     recordVm: RecordViewModel = viewModel()
 ) {
+    val colors = LocalAppColors.current
     val curThreshold = thresholdFor(charStage)
     val nextThreshold = nextThresholdFor(charStage)
     val progressIntoStage = (totalPushups - curThreshold).coerceAtLeast(0)
@@ -59,30 +55,72 @@ fun HomeScreen(
     val remaining = (nextThreshold - totalPushups).coerceAtLeast(0)
     val recordState by recordVm.uiState.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Character + progress area
+            // Character + progress area — weight spacers replace Arrangement.Center
+            // so content never clips when screen is tight
             Column(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.weight(1f))
+
+                if (oneRepMax > 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        StatCard(
+                            modifier = Modifier.weight(1f),
+                            icon = "💪",
+                            label = "1회 최고 기록",
+                            value = "${oneRepMax}개"
+                        )
+                        val rankText = nationalRankText(oneRepMax)
+                        if (rankText != null) {
+                            StatCard(
+                                modifier = Modifier.weight(1f),
+                                icon = "🏆",
+                                label = "전국 성인남자",
+                                value = rankText
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 val transition = rememberInfiniteTransition(label = "float")
                 val offsetY by transition.animateFloat(
                     initialValue = 0f,
-                    targetValue = -10f,
+                    targetValue = -22f,
                     animationSpec = infiniteRepeatable(
-                        animation = tween(3000),
+                        animation = tween(1600),
                         repeatMode = RepeatMode.Reverse
                     ),
                     label = "floatY"
                 )
+                val scale by transition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.04f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1600),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
                 Box(
                     modifier = Modifier
                         .clickable { onCharacter() }
-                        .graphicsLayer { translationY = offsetY }
+                        .graphicsLayer {
+                            translationY = offsetY
+                            scaleX = scale
+                            scaleY = scale
+                        }
                 ) {
                     GabpaChar(stage = charStage, sizeDp = 180.dp)
                 }
@@ -91,7 +129,7 @@ fun HomeScreen(
 
                 Text(
                     text = "${charStage}단계 · ${STAGE_NAMES[charStage]}",
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -106,26 +144,43 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("${charStage}단계", color = TextSub, fontSize = 13.sp)
+                        Text("${charStage}단계", color = colors.textSub, fontSize = 13.sp)
                         Text(
                             text = "레벨업까지 ${remaining}개",
-                            color = Yellow,
+                            color = colors.accent,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
                             text = "${(charStage + 1).coerceAtMost(10)}단계 🔒",
-                            color = TextSub,
+                            color = colors.textSub,
                             fontSize = 13.sp
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    GabpaProgressBar(
-                        value = progressIntoStage.toFloat(),
-                        max = stageRange.toFloat(),
-                        height = 16.dp
-                    )
+                    val ratio = if (stageRange > 0) progressIntoStage.toFloat() / stageRange.toFloat() else 0f
+                    val pct = (ratio * 100).toInt().coerceIn(0, 100)
+                    Box(modifier = Modifier.fillMaxWidth().height(16.dp)) {
+                        GabpaProgressBar(
+                            value = progressIntoStage.toFloat(),
+                            max = stageRange.toFloat(),
+                            height = 16.dp
+                        )
+                        Box(
+                            modifier = Modifier.fillMaxHeight().fillMaxWidth(ratio),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "${pct}%",
+                                color = Color(0xFF1A1000),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
             }
 
             // Mini calendar below progress bar
@@ -138,7 +193,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                BtnPrimary(text = "운동 시작 💪", onClick = onStartWorkout)
+                BtnPrimary(text = "푸쉬업 시작 💪", onClick = onStartWorkout)
             }
 
             BottomNav(active = "home", onNav = onNav)
@@ -147,95 +202,21 @@ fun HomeScreen(
 }
 
 @Composable
-private fun MiniCalendar(
-    sessionsByDate: Map<String, Int>,
-    onDayClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val cal = remember { Calendar.getInstance() }
-    val year = cal.get(Calendar.YEAR)
-    val month = cal.get(Calendar.MONTH)
-    val today = cal.get(Calendar.DAY_OF_MONTH)
-    val maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-    val monthLabel = remember {
-        SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(cal.time)
-    }
-    val firstDayOfWeek = remember {
-        Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1) }
-            .get(Calendar.DAY_OF_WEEK) - 1
-    }
-    val fmt = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-
-    fun dateStr(day: Int): String {
-        val c = Calendar.getInstance(); c.set(year, month, day); return fmt.format(c.time)
-    }
-
-    val padded = List(firstDayOfWeek) { 0 } + (1..maxDay).toList()
-    val full = padded + List((7 - padded.size % 7) % 7) { 0 }
-    val rows = full.chunked(7)
-
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(
-            text = monthLabel,
-            color = TextPrimary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 1.dp)
-        )
-        Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("일", "월", "화", "수", "목", "금", "토").forEach { label ->
-                Text(
-                    text = label, color = TextSub, fontSize = 8.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-        rows.forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                row.forEach { d ->
-                    if (d == 0) {
-                        Spacer(modifier = Modifier.weight(1f).height(30.dp))
-                    } else {
-                        val count = sessionsByDate[dateStr(d)] ?: 0
-                        val intensity = (count / 50f).coerceIn(0f, 1f)
-                        val bg = if (count > 0) Yellow.copy(alpha = 0.15f + intensity * 0.55f) else BgCard
-                        val textColor = if (count > 0) Color.Black else TextSub
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(30.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(bg)
-                                .border(
-                                    width = if (d == today) 1.5.dp else 0.dp,
-                                    color = if (d == today) Yellow else Color.Transparent,
-                                    shape = RoundedCornerShape(5.dp)
-                                )
-                                .clickable { onDayClick() }
-                                .padding(vertical = 3.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "$d",
-                                color = textColor,
-                                fontSize = 8.sp,
-                                fontWeight = if (d == today) FontWeight.Bold else FontWeight.Normal
-                            )
-                            Text(
-                                text = if (count > 0) "${count}회" else "-",
-                                color = textColor,
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-        }
+private fun StatCard(modifier: Modifier = Modifier, icon: String, label: String, value: String) {
+    val colors = LocalAppColors.current
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(colors.bgCard)
+            .border(1.dp, colors.borderCard, RoundedCornerShape(14.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = icon, fontSize = 22.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = label, color = colors.textSub, fontSize = 13.sp)
+        Spacer(modifier = Modifier.height(3.dp))
+        Text(text = value, color = colors.accent, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
+

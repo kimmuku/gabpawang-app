@@ -14,12 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gabpawang.app.ui.theme.BgCard
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Orange
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 import com.gabpawang.app.data.db.WorkoutSessionEntity
 import java.text.SimpleDateFormat
@@ -28,6 +27,7 @@ import java.util.Locale
 
 @Composable
 fun CalendarTab(uiState: RecordUiState) {
+    val colors = LocalAppColors.current
     val cal = remember { Calendar.getInstance() }
     val year = cal.get(Calendar.YEAR)
     val month = cal.get(Calendar.MONTH) // 0-based
@@ -64,7 +64,7 @@ fun CalendarTab(uiState: RecordUiState) {
         Spacer(Modifier.height(8.dp))
         StreakCard(streak = uiState.streak)
         Spacer(Modifier.height(16.dp))
-        Text(monthLabel, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(monthLabel, color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
 
         // Pad leading empty cells so day 1 aligns to correct weekday column
@@ -101,78 +101,39 @@ fun CalendarTab(uiState: RecordUiState) {
 
         Spacer(Modifier.height(16.dp))
 
-        val selectedSessions = uiState.sessionDetailsByDate[dateStr(selected)] ?: emptyList()
+        val selectedSessions = (uiState.sessionDetailsByDate[dateStr(selected)] ?: emptyList())
+            .filter { it.totalReps > 0 }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
-                .background(BgCard)
+                .background(colors.bgCard)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "${month + 1}월 ${selected}일",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             if (selectedSessions.isEmpty()) {
-                Text("운동 기록 없음", color = TextSub, fontSize = 12.sp)
+                Text("운동 기록 없음", color = colors.textSub, fontSize = 12.sp)
             } else {
-                selectedSessions.forEachIndexed { sessionIdx, session ->
-                    val setCounts = session.setHistory
-                        .split(",")
-                        .filter { it.isNotBlank() }
-                        .mapNotNull { it.toIntOrNull() }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        val modeLabel = when (session.mode) {
-                            "free" -> "자유 모드"
-                            "target" -> "목표 모드"
-                            "challenge" -> "챌린지"
-                            else -> null
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (selectedSessions.size > 1) {
-                                Text(
-                                    text = "운동 ${sessionIdx + 1}",
-                                    color = Yellow,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                Spacer(Modifier.width(0.dp))
-                            }
-                            if (modeLabel != null) {
-                                Text(
-                                    text = modeLabel,
-                                    color = TextSub,
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-                        if (setCounts.isNotEmpty()) {
-                            setCounts.forEachIndexed { setIdx, reps ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text("세트 ${setIdx + 1}", color = TextSub, fontSize = 12.sp)
-                                    Text("${reps}회", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("합계", color = TextSub, fontSize = 12.sp)
-                            Text("${session.totalReps}회", color = Yellow, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
+                SessionsTable(sessions = selectedSessions)
+                val dayTotal = selectedSessions.sumOf { it.totalReps }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("하루 합계  ", color = colors.textSub, fontSize = 12.sp)
+                    Text(
+                        text = "${dayTotal}회",
+                        color = colors.accent,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
                 }
             }
         }
@@ -182,6 +143,7 @@ fun CalendarTab(uiState: RecordUiState) {
 
 @Composable
 private fun StreakCard(streak: Int) {
+    val colors = LocalAppColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,11 +158,90 @@ private fun StreakCard(streak: Int) {
         Column {
             Text(
                 text = if (streak > 0) "${streak}일 연속 운동 중!" else "오늘 운동을 시작해요!",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
-            Text("계속 이어가세요", color = TextSub, fontSize = 12.sp)
+            Text("계속 이어가세요", color = colors.textSub, fontSize = 12.sp)
+        }
+    }
+}
+
+@Composable
+private fun SessionsTable(sessions: List<WorkoutSessionEntity>) {
+    val colors = LocalAppColors.current
+    val allSetCounts = sessions.map { s ->
+        s.setHistory.split(",").filter { it.isNotBlank() }.mapNotNull { it.toIntOrNull() }
+            .ifEmpty { listOf(s.totalReps) }
+    }
+    val maxSets = allSetCounts.maxOf { it.size }
+    val isSingle = sessions.size == 1
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, colors.borderCard, RoundedCornerShape(8.dp))
+    ) {
+        // Header: [운동(multi only)] | 1세트 | 2세트 | ... | 합계
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colors.bgDark)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (!isSingle) Spacer(modifier = Modifier.weight(1.2f))
+            for (setIdx in 0 until maxSets) {
+                Text(
+                    text = "${setIdx + 1}세트",
+                    color = colors.textSub, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f), textAlign = TextAlign.Center
+                )
+            }
+            Text(
+                text = "합계",
+                color = colors.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f), textAlign = TextAlign.Center
+            )
+        }
+        Box(Modifier.fillMaxWidth().height(0.5.dp).background(colors.borderCard))
+
+        // One row per session
+        sessions.forEachIndexed { idx, s ->
+            val counts = allSetCounts[idx]
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!isSingle) {
+                    Text(
+                        text = "운동 ${idx + 1}",
+                        color = colors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1.2f)
+                    )
+                }
+                for (setIdx in 0 until maxSets) {
+                    val reps = counts.getOrNull(setIdx)
+                    Text(
+                        text = if (reps != null) "${reps}회" else "-",
+                        color = if (reps != null) colors.textPrimary else colors.textSub,
+                        fontSize = 13.sp,
+                        fontWeight = if (reps != null) FontWeight.Bold else FontWeight.Normal,
+                        modifier = Modifier.weight(1f), textAlign = TextAlign.Center
+                    )
+                }
+                Text(
+                    text = "${s.totalReps}회",
+                    color = colors.accent, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f), textAlign = TextAlign.Center
+                )
+            }
+            if (idx < sessions.lastIndex) {
+                Box(Modifier.fillMaxWidth().height(0.5.dp).background(colors.borderCard))
+            }
         }
     }
 }
@@ -213,6 +254,7 @@ private fun DayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalAppColors.current
     val intensity = (count / 50f).coerceIn(0f, 1f)
     val bg = Yellow.copy(alpha = 0.15f + intensity * 0.55f)
     val borderColor = if (selected) Yellow else Color.Transparent
@@ -220,16 +262,16 @@ private fun DayCell(
         modifier = modifier
             .height(56.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(if (count > 0) bg else BgCard)
+            .background(if (count > 0) bg else colors.bgCard)
             .border(2.dp, borderColor, RoundedCornerShape(8.dp))
             .clickable { onClick() }
             .padding(4.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = "$day", color = TextSub, fontSize = 9.sp)
+        Text(text = "$day", color = colors.textSub, fontSize = 9.sp)
         Text(
             text = if (count > 0) "$count" else "-",
-            color = if (count > 0) Color.Black else TextSub,
+            color = if (count > 0) Color.Black else colors.textSub,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)

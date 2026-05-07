@@ -30,7 +30,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     val oneRepMax: StateFlow<Int> = repo.allSessions.map { sessions ->
-        sessions.maxOfOrNull { s -> if (s.sets > 0) s.totalReps / s.sets else s.totalReps } ?: 0
+        sessions.flatMap { s ->
+            s.setHistory.split(",").mapNotNull { it.trim().toIntOrNull() }
+                .ifEmpty { listOf(s.totalReps) }
+        }.maxOrNull() ?: 0
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     /** Persists a finished workout result to the database. */

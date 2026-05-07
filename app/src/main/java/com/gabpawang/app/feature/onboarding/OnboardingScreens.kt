@@ -1,5 +1,6 @@
 package com.gabpawang.app.feature.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,61 +15,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.components.BtnGhost
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
 import com.gabpawang.app.ui.components.StatusBarSpacer
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BgSheet
-import com.gabpawang.app.ui.theme.BorderCard
 import com.gabpawang.app.ui.theme.KakaoYellow
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.NaverGreen
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onNext: () -> Unit) {
     LaunchedEffect(Unit) {
-        delay(1800)
+        delay(1500)
         onNext()
     }
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(Color(0x2EFFC400), Color(0x00FFC400), BgDark),
-                    radius = 800f
-                )
-            )
-            .background(BgDark.copy(alpha = 0.0f)),
+            .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            GabpaChar(stage = 7, sizeDp = 100.dp, glow = true)
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "갑빠왕",
-                color = Yellow,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "푸쉬업으로 단계 진화",
-                color = TextSub,
-                fontSize = 14.sp
-            )
-        }
+        Image(
+            painter = painterResource(R.drawable.splash_img),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
     }
 }
 
@@ -82,10 +64,11 @@ private val slides = listOf(
 
 @Composable
 fun OnboardingScreen(onNext: () -> Unit) {
+    val colors = LocalAppColors.current
     var page by remember { mutableStateOf(0) }
     val slide = slides[page]
 
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(
             modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -98,7 +81,7 @@ fun OnboardingScreen(onNext: () -> Unit) {
             ) {
                 Text(
                     text = "건너뛰기",
-                    color = TextSub,
+                    color = colors.textSub,
                     fontSize = 13.sp,
                     modifier = Modifier.clickable { onNext() }
                 )
@@ -108,14 +91,14 @@ fun OnboardingScreen(onNext: () -> Unit) {
             Spacer(modifier = Modifier.height(48.dp))
             Text(
                 text = slide.title,
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = slide.desc,
-                color = TextSub,
+                color = colors.textSub,
                 fontSize = 14.sp
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -152,13 +135,14 @@ fun SignupScreen(
     onGoogleSignIn: () -> Unit = {},
     onKakaoSignIn: () -> Unit = {}
 ) {
+    val colors = LocalAppColors.current
     var showEmail by remember { mutableStateOf(false) }
     var showGuestSheet by remember { mutableStateOf(false) }
     var nickname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var pw by remember { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(
             modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -167,14 +151,14 @@ fun SignupScreen(
             Spacer(modifier = Modifier.height(40.dp))
             Text(
                 text = "계정 만들기",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "기록을 안전하게 보관하세요",
-                color = TextSub,
+                color = colors.textSub,
                 fontSize = 13.sp
             )
             Spacer(modifier = Modifier.height(36.dp))
@@ -187,7 +171,7 @@ fun SignupScreen(
             Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = if (showEmail) "닫기" else "이메일로 가입",
-                color = Yellow,
+                color = colors.accent,
                 fontSize = 14.sp,
                 modifier = Modifier.clickable { showEmail = !showEmail }
             )
@@ -235,16 +219,17 @@ private fun BrandButton(
 
 @Composable
 private fun EmailField(label: String, value: String, onChange: (String) -> Unit) {
+    val colors = LocalAppColors.current
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, color = TextSub, fontSize = 12.sp)
+        Text(text = label, color = colors.textSub, fontSize = 12.sp)
         Spacer(modifier = Modifier.height(4.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(46.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(BgCard)
-                .border(1.dp, BorderCard, RoundedCornerShape(10.dp))
+                .background(colors.bgCard)
+                .border(1.dp, colors.borderCard, RoundedCornerShape(10.dp))
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.CenterStart
         ) {
@@ -252,7 +237,7 @@ private fun EmailField(label: String, value: String, onChange: (String) -> Unit)
                 value = value,
                 onValueChange = onChange,
                 singleLine = true,
-                textStyle = TextStyle(color = TextPrimary, fontSize = 14.sp),
+                textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
                 cursorBrush = androidx.compose.ui.graphics.SolidColor(Yellow)
             )
         }
@@ -261,6 +246,7 @@ private fun EmailField(label: String, value: String, onChange: (String) -> Unit)
 
 @Composable
 private fun GuestSheet(onCancel: () -> Unit, onContinue: () -> Unit) {
+    val colors = LocalAppColors.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -272,7 +258,7 @@ private fun GuestSheet(onCancel: () -> Unit, onContinue: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-                .background(BgSheet)
+                .background(colors.bgSheet)
                 .navigationBarsPadding()
                 .padding(24.dp)
                 .clickable(enabled = false) {},
@@ -285,11 +271,11 @@ private fun GuestSheet(onCancel: () -> Unit, onContinue: () -> Unit) {
                     .background(Color.White.copy(alpha = 0.2f))
             )
             Spacer(modifier = Modifier.height(20.dp))
-            Text("게스트 모드 안내", color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("게스트 모드 안내", color = colors.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "기록은 이 기기에만 저장됩니다. 앱을 삭제하거나 기기를 변경하면 데이터가 사라질 수 있어요.",
-                color = TextSub,
+                color = colors.textSub,
                 fontSize = 13.sp
             )
             Spacer(modifier = Modifier.height(20.dp))

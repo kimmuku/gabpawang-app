@@ -17,11 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.GabpaProgressBar
 import com.gabpawang.app.ui.components.StatusBarSpacer
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BorderCard
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Yellow
 
 private data class ChallengeItem(
@@ -42,13 +38,14 @@ private val challenges = listOf(
 
 @Composable
 fun ChallengeScreen(onNav: (String) -> Unit) {
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    val colors = LocalAppColors.current
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-                Text("챌린지", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("챌린지", color = colors.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
-                Text("도전하고 보상을 받으세요 🎁", color = TextSub, fontSize = 13.sp)
+                Text("도전하고 보상을 받으세요 🎁", color = colors.textSub, fontSize = 13.sp)
             }
             Column(
                 modifier = Modifier
@@ -70,20 +67,21 @@ fun ChallengeScreen(onNav: (String) -> Unit) {
 
 @Composable
 private fun ChallengeCard(c: ChallengeItem) {
+    val colors = LocalAppColors.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(BgCard)
-            .border(1.dp, BorderCard, RoundedCornerShape(16.dp))
+            .background(colors.bgCard)
+            .border(1.dp, colors.borderCard, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(c.emoji, fontSize = 32.sp)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(c.title, color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(c.desc, color = TextSub, fontSize = 12.sp)
+                Text(c.title, color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(c.desc, color = colors.textSub, fontSize = 12.sp)
             }
         }
         if (c.progress > 0f) {
@@ -92,13 +90,13 @@ private fun ChallengeCard(c: ChallengeItem) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("${c.current} / ${c.total}", color = TextPrimary, fontSize = 12.sp)
-                Text("${(c.progress * 100).toInt()}%", color = Yellow, fontSize = 12.sp)
+                Text("${c.current} / ${c.total}", color = colors.textPrimary, fontSize = 12.sp)
+                Text("${(c.progress * 100).toInt()}%", color = colors.accent, fontSize = 12.sp)
             }
             Spacer(Modifier.height(6.dp))
             GabpaProgressBar(value = c.progress, max = 1f, height = 6.dp)
         }
         Spacer(Modifier.height(10.dp))
-        Text(text = "🎁 보상: ${c.reward}", color = Yellow, fontSize = 11.sp)
+        Text(text = "🎁 보상: ${c.reward}", color = colors.accent, fontSize = 11.sp)
     }
 }

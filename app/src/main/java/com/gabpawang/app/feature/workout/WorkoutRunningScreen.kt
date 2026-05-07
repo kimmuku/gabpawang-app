@@ -34,6 +34,7 @@ fun WorkoutRunningScreen(
     voiceEnabled: Boolean = false,
     onFinish: (WorkoutResult) -> Unit
 ) {
+    val context = LocalContext.current
     var currentSet by remember { mutableStateOf(1) }
     var setHistory by remember { mutableStateOf<List<Int>>(emptyList()) }
     var elapsedSec by remember { mutableStateOf(0) }
@@ -41,9 +42,9 @@ fun WorkoutRunningScreen(
     var restRemaining by remember { mutableStateOf(0) }
 
     val repCount by vm.repCount
+    val phase by vm.phase
 
     // TTS for voice count
-    val context = LocalContext.current
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
     DisposableEffect(Unit) {
         var tts: TextToSpeech? = null
@@ -94,10 +95,33 @@ fun WorkoutRunningScreen(
         }
     }
 
-    // Speak count on each rep if voice is enabled
+    // Speak count on each rep if voice is enabled — mirrors the on-screen display value
     LaunchedEffect(repCount) {
         if (voiceEnabled && repCount > 0) {
-            ttsRef.value?.speak("$repCount", TextToSpeech.QUEUE_FLUSH, null, "rep_$repCount")
+            val spoken = when (config.mode) {
+                "target" -> {
+                    val target = config.targetCounts.getOrElse(currentSet - 1) { 20 }
+                    (target - repCount).coerceAtLeast(0)
+                }
+                "challenge" -> (100 - repCount).coerceAtLeast(0)
+                else -> repCount
+            }
+            ttsRef.value?.speak("$spoken", TextToSpeech.QUEUE_FLUSH, null, "rep_$repCount")
+        }
+    }
+
+    // Auto-finish for timed mode at 120 seconds
+    LaunchedEffect(elapsedSec) {
+        if (config.mode == "timed" && elapsedSec >= config.timedSecs) {
+            val finalHistory = if (repCount > 0) listOf(repCount) else emptyList()
+            onFinish(
+                WorkoutResult(
+                    sets = finalHistory.size,
+                    total = finalHistory.sum(),
+                    history = finalHistory,
+                    durationSec = elapsedSec
+                )
+            )
         }
     }
 
@@ -116,6 +140,33 @@ fun WorkoutRunningScreen(
         }
     }
 
+    // Auto-complete set / workout when target rep count is reached in target mode
+    LaunchedEffect(repCount) {
+        if (config.mode == "target" && !inRest) {
+            val target = config.targetCounts.getOrElse(currentSet - 1) { 20 }
+            if (repCount >= target) {
+                delay(800L) // brief pause so user sees "0" before transitioning
+                val updatedHistory = setHistory + repCount
+                if (currentSet >= config.targetSets) {
+                    onFinish(
+                        WorkoutResult(
+                            sets = updatedHistory.size,
+                            total = updatedHistory.sum(),
+                            history = updatedHistory,
+                            durationSec = elapsedSec
+                        )
+                    )
+                } else {
+                    setHistory = updatedHistory
+                    currentSet++
+                    restRemaining = 60
+                    inRest = true
+                    vm.reset()
+                }
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF080E18))) {
         CameraBackground(vm = vm)
         RunningView(
@@ -125,6 +176,8 @@ fun WorkoutRunningScreen(
             setHistory = setHistory,
             inRest = inRest,
             restRemaining = restRemaining,
+            phase = phase,
+            elapsedSec = elapsedSec,
             onExtendRest = { restRemaining += 30 },
             onSkipRest = { restRemaining = 0 },
             onCompleteSet = {

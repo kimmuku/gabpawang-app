@@ -1,6 +1,7 @@
 package com.gabpawang.app
 
 import android.Manifest
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.WindowManager
@@ -10,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,16 +24,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gabpawang.app.feature.character.CharacterScreen
 import com.gabpawang.app.feature.home.HomeScreen
 import com.gabpawang.app.feature.notifications.NotificationScreen
+import com.gabpawang.app.feature.onboarding.TutorialScreen
 import com.gabpawang.app.feature.record.RecordScreen
 import com.gabpawang.app.feature.settings.SettingsScreen
 import com.gabpawang.app.feature.workout.LevelUpScreen
 import com.gabpawang.app.feature.workout.WorkoutResultScreen
 import com.gabpawang.app.feature.workout.WorkoutRunningScreen
 import com.gabpawang.app.feature.workout.WorkoutStartScreen
+import com.gabpawang.app.ui.theme.DarkAppColors
+import com.gabpawang.app.ui.theme.LightAppColors
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.PushUpCounterTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContent { PushUpCounterTheme { GabpaWangApp() } }
@@ -44,9 +51,21 @@ fun GabpaWangApp(
     cameraVm: MainViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val appState = remember { AppState() }
+    // Check if the user has already seen the tutorial; first-time users start on "tutorial".
+    val tutorialSeen = remember {
+        context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("tutorial_seen", false)
+    }
+    val savedDarkTheme = remember {
+        context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("dark_theme", true)
+    }
+    val appState = remember {
+        AppState(if (tutorialSeen) "home" else "tutorial").also { it.isDarkTheme = savedDarkTheme }
+    }
     val totalPushups by appVm.totalPushups.collectAsStateWithLifecycle()
     val charStage by appVm.charStage.collectAsStateWithLifecycle()
+    val oneRepMax by appVm.oneRepMax.collectAsStateWithLifecycle()
 
     var hasPermission by remember {
         mutableStateOf(
@@ -74,21 +93,26 @@ fun GabpaWangApp(
         }
     }
 
-    // Permission gate is bypassed for non-camera screens.
-    // We only require camera for the workout screen.
-    if (appState.screen == "workout" && !hasPermission) {
-        PermissionScreen { launcher.launch(Manifest.permission.CAMERA) }
-        return
-    }
+    // Re-provide LocalAppColors based on current theme preference so all children react to changes.
+    val appColors = if (appState.isDarkTheme) DarkAppColors else LightAppColors
+    CompositionLocalProvider(LocalAppColors provides appColors) {
+        // Permission gate is bypassed for non-camera screens.
+        // We only require camera for the workout screen.
+        if (appState.screen == "workout" && !hasPermission) {
+            PermissionScreen { launcher.launch(Manifest.permission.CAMERA) }
+            return@CompositionLocalProvider
+        }
 
-    AppRouter(
-        appState = appState,
-        vm = cameraVm,
-        appVm = appVm,
-        totalPushups = totalPushups,
-        charStage = charStage,
-        context = context
-    )
+        AppRouter(
+            appState = appState,
+            vm = cameraVm,
+            appVm = appVm,
+            totalPushups = totalPushups,
+            charStage = charStage,
+            oneRepMax = oneRepMax,
+            context = context
+        )
+    }
 }
 
 @Composable
@@ -98,12 +122,22 @@ private fun AppRouter(
     appVm: AppViewModel,
     totalPushups: Int,
     charStage: Int,
+    oneRepMax: Int,
     context: android.content.Context
 ) {
     when (appState.screen) {
+        "tutorial" -> TutorialScreen(
+            onStart = {
+                // Mark tutorial as seen so it won't show again on next launch.
+                context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
+                    .edit().putBoolean("tutorial_seen", true).apply()
+                appState.goRoot("home")
+            }
+        )
         "home" -> HomeScreen(
             charStage = charStage,
             totalPushups = totalPushups,
+            oneRepMax = oneRepMax,
             onNav = { appState.goNav(it) },
             onStartWorkout = { appState.go("workoutStart") },
             onCharacter = { appState.go("character") }
@@ -157,7 +191,13 @@ private fun AppRouter(
         "settings" -> SettingsScreen(
             onNav = { appState.goNav(it) },
             voiceEnabled = appState.voiceEnabled,
-            onVoiceChange = { appState.voiceEnabled = it }
+            onVoiceChange = { appState.voiceEnabled = it },
+            isDarkTheme = appState.isDarkTheme,
+            onThemeChange = { dark ->
+                appState.isDarkTheme = dark
+                context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
+                    .edit().putBoolean("dark_theme", dark).apply()
+            }
         )
     }
 }

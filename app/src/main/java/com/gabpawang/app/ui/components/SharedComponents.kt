@@ -26,12 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gabpawang.app.ui.theme.BgCard
-import com.gabpawang.app.ui.theme.BgDark
-import com.gabpawang.app.ui.theme.BorderCard
+import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Orange
-import com.gabpawang.app.ui.theme.TextPrimary
-import com.gabpawang.app.ui.theme.TextSub
 import com.gabpawang.app.ui.theme.Yellow
 
 /**
@@ -74,13 +70,14 @@ fun BtnGhost(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalAppColors.current
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = Color.Transparent,
-            contentColor = TextPrimary
+            contentColor = colors.textPrimary
         )
     ) {
         Text(text = text, fontSize = 15.sp, fontWeight = FontWeight.Medium)
@@ -138,22 +135,23 @@ fun BackHeader(
     onBack: () -> Unit,
     subtitle: String? = null
 ) {
+    val colors = LocalAppColors.current
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(BgCard)
+                    .background(colors.bgCard)
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text("←", fontSize = 18.sp, color = TextPrimary)
+                Text("←", fontSize = 18.sp, color = colors.textPrimary)
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = title,
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -162,7 +160,7 @@ fun BackHeader(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = subtitle,
-                color = TextSub,
+                color = colors.textSub,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(start = 48.dp)
             )
@@ -175,13 +173,14 @@ fun StatCard(
     value: String,
     label: String,
     modifier: Modifier = Modifier,
-    color: Color = TextPrimary,
+    color: Color = LocalAppColors.current.textPrimary,
     onClick: (() -> Unit)? = null
 ) {
+    val colors = LocalAppColors.current
     val baseModifier = modifier
         .clip(RoundedCornerShape(14.dp))
-        .background(BgCard)
-        .border(1.dp, BorderCard, RoundedCornerShape(14.dp))
+        .background(colors.bgCard)
+        .border(1.dp, colors.borderCard, RoundedCornerShape(14.dp))
         .let { if (onClick != null) it.clickable { onClick() } else it }
         .padding(vertical = 16.dp, horizontal = 12.dp)
 
@@ -196,7 +195,7 @@ fun StatCard(
             fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold
         )
-        Text(text = label, color = TextSub, fontSize = 11.sp)
+        Text(text = label, color = colors.textSub, fontSize = 11.sp)
     }
 }
 
@@ -210,18 +209,19 @@ private val navItems = listOf(
 
 @Composable
 fun BottomNav(active: String, onNav: (String) -> Unit) {
+    val colors = LocalAppColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BgDark.copy(alpha = 0.98f))
-            .border(0.5.dp, BorderCard)
+            .background(colors.bgDark.copy(alpha = 0.98f))
+            .border(0.5.dp, colors.borderCard)
             .navigationBarsPadding()
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
         for (item in navItems) {
-            val tint = if (item.id == active) Yellow else TextSub
+            val tint = if (item.id == active) colors.accent else colors.textSub
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -244,9 +244,10 @@ fun BottomNav(active: String, onNav: (String) -> Unit) {
 
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    val colors = LocalAppColors.current
     Text(
         text = text,
-        color = TextPrimary,
+        color = colors.textPrimary,
         fontSize = 15.sp,
         fontWeight = FontWeight.Bold,
         modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)
