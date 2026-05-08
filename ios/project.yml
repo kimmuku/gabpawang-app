@@ -70,10 +70,10 @@ targets:
           - kakaokompassauth
           - kakaolink
         UIAppFonts:
-          - Pretendard-Regular.otf
-          - Pretendard-Medium.otf
-          - Pretendard-Bold.otf
-          - Pretendard-ExtraBold.otf
+          - Pretendard-Regular.ttf
+          - Pretendard-Medium.ttf
+          - Pretendard-Bold.ttf
+          - Pretendard-ExtraBold.ttf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.gabpawang.app

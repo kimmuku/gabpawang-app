@@ -91,15 +91,23 @@ ios/GabpaWang/
 | `SharedPreferences` | `UserDefaults` |
 | `BackHandler` | `AppState` 백 스택 (수동 관리, 안드로이드 동일 모델) |
 
-## TODO — 아직 마무리되지 않은 것들
+## 진행 현황
 
-1. **캐릭터 일러스트** — `Assets.xcassets`에 `char_stage_1` ~ `char_stage_10`을 PNG로 추가해야 함. 현재는 SF Symbol 폴백 사용.
-2. **Pretendard 폰트** — `Resources/Fonts/`에 `.otf` 4개(Regular/Medium/Bold/ExtraBold) 넣고 Info.plist의 `UIAppFonts`도 동일하게 갱신.
-3. **카카오 OAuth + Supabase 연동** — Supabase는 카카오를 직접 지원하지 않음. Edge Function 설계는 안드로이드와 공유. iOS 측은 카카오에서 받은 ID 토큰을 동일 Edge Function으로 보내면 됨.
-4. **음성 카운트(TTS)** — 안드로이드는 `TextToSpeech` 사용. iOS는 `AVSpeechSynthesizer`로 교체해 주세요.
-5. **알림 / 리마인더** — 현재 `NotificationsView`는 더미 데이터. `UserNotifications` 프레임워크로 로컬/원격 알림 연동 필요.
-6. **챌린지 화면 / 7일·30일 챌린지** — Tier 2 기능. 안드로이드도 stub 수준이라 미포팅.
-7. **Vision 키포인트 매핑 검증** — 시뮬레이터에서는 카메라/Vision이 제한적. 실 디바이스에서 어깨 Y 좌표가 안드로이드 알고리즘이 기대하는 분포(0~1)에 맞는지 한 번 검증 필요.
+✅ **완료**
+- 캐릭터 일러스트 10단계(char_stage_1~10) `Assets.xcassets`에 추가
+- Pretendard 폰트 4종(.ttf) `Resources/Fonts/`에 추가
+- pushup_guide.png 추가
+- 음성 카운트 (`AVSpeechSynthesizer` + `SpeechCounter.swift`)
+- 챌린지 화면 stub (`ChallengeView.swift`) + Screen.challenge 라우트
+- 카카오 OAuth Edge Function 초안 (`supabase/functions/kakao-auth/`) +
+  iOS `AuthRepository.signInWithKakao`에 호출 흐름 연결
+
+⚠️ **남은 일**
+1. **카카오 Edge Function 배포** — `supabase functions deploy kakao-auth`로 업로드 필요. Supabase Swift SDK의 `verifyOTP` 시그니처는 SDK 버전에 따라 미세하게 다를 수 있어 실 빌드 시 한 번 확인.
+2. **알림 / 리마인더** — 현재 `NotificationsView`는 더미 데이터. `UserNotifications` 프레임워크로 로컬/원격 알림 연동 필요.
+3. **Vision 키포인트 매핑 실기기 검증** — 시뮬레이터에서는 카메라/Vision이 제한적. 실 디바이스에서 어깨 Y 좌표가 알고리즘이 기대하는 분포(0~1)에 맞는지 한 번 검증.
+4. **앱 아이콘 1024×1024** — `AppIcon.appiconset`은 자리만 잡혀 있음. 실제 PNG 추가 필요.
+5. **첫 빌드 시 컴파일 에러** — Mac/Xcode가 없는 환경에서 작성된 코드라 SPM 패키지 API 시그니처 미세 차이로 사소한 수정이 필요할 수 있음.
 
 ## 카메라/포즈 검출 노트
 

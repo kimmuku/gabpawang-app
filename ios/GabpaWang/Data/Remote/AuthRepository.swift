@@ -47,19 +47,16 @@ final class AuthRepository {
     // MARK: - Kakao
 
     /// 카카오 로그인. KakaoTalk 앱이 있으면 그쪽을, 없으면 카카오 계정 웹 로그인을 사용.
-    func signInWithKakao() async throws -> OAuthToken {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<OAuthToken, Error>) in
+    /// 받은 access_token은 Supabase Edge Function `kakao-auth`로 보내 세션을 시작한다.
+    func signInWithKakao() async throws {
+        let token = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<OAuthToken, Error>) in
             let callback: (OAuthToken?, Error?) -> Void = { token, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let token = token {
-                    continuation.resume(returning: token)
-                } else {
-                    continuation.resume(throwing: NSError(
-                        domain: "AuthRepository", code: 2,
-                        userInfo: [NSLocalizedDescriptionKey: "Kakao: no token and no error"]
-                    ))
-                }
+                if let error = error { cont.resume(throwing: error); return }
+                if let token = token { cont.resume(returning: token); return }
+                cont.resume(throwing: NSError(
+                    domain: "AuthRepository", code: 2,
+                    userInfo: [NSLocalizedDescriptionKey: "Kakao: no token and no error"]
+                ))
             }
             if UserApi.isKakaoTalkLoginAvailable() {
                 UserApi.shared.loginWithKakaoTalk(completion: callback)
@@ -67,6 +64,28 @@ final class AuthRepository {
                 UserApi.shared.loginWithKakaoAccount(completion: callback)
             }
         }
+
+        // Edge Function 호출 → 세션 토큰 받기 → verifyOTP로 Supabase 로그인.
+        let endpoint = AppConfig.supabaseURL.appendingPathComponent("functions/v1/kakao-auth")
+        var req = URLRequest(url: endpoint)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(AppConfig.supabaseAnonKey)", forHTTPHeaderField: "Authorization")
+        req.httpBody = try JSONEncoder().encode([
+            "access_token": token.accessToken
+        ])
+        let (data, _) = try await URLSession.shared.data(for: req)
+        struct EdgeResponse: Decodable {
+            let email: String
+            let token_hash: String
+        }
+        let decoded = try JSONDecoder().decode(EdgeResponse.self, from: data)
+
+        try await supabase.auth.verifyOTP(
+            email: decoded.email,
+            token: decoded.token_hash,
+            type: .magiclink
+        )
     }
 
     /// 로그아웃. Supabase + 두 SDK 모두 처리.

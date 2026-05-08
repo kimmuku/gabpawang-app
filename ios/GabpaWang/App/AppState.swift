@@ -28,6 +28,7 @@ enum Screen: String, Hashable {
     case levelup
     case record
     case character
+    case challenge
     case notifications
     case settings
 }

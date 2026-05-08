@@ -96,6 +96,9 @@ struct RootView: View {
             case .notifications:
                 NotificationsView(onBack: { appState.back() })
 
+            case .challenge:
+                ChallengeView(onBack: { appState.back() })
+
             case .settings:
                 SettingsView(onNav: { appState.goNav($0) })
             }

@@ -17,8 +17,12 @@ struct WorkoutRunningView: View {
     @State private var resting = false
     @State private var restRemaining = 60
     @State private var restTimer: Timer?
+    @State private var elapsedTimer: Timer?
+    @State private var elapsedSec: Int = 0
     @State private var permissionDenied = false
     @State private var showSkeleton = false
+    @State private var lastSpokenRep = 0
+    private let speech = SpeechCounter()
 
     var body: some View {
         ZStack {
@@ -153,11 +157,52 @@ struct WorkoutRunningView: View {
             } catch {
                 permissionDenied = true
             }
+            startElapsedTimer()
+        }
+        .onChange(of: vm.repCount) { _, newCount in
+            handleRepChange(newCount: newCount)
         }
         .onDisappear {
             vm.teardown()
             restTimer?.invalidate()
+            elapsedTimer?.invalidate()
+            speech.stop()
         }
+    }
+
+    private func startElapsedTimer() {
+        elapsedTimer?.invalidate()
+        elapsedTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            Task { @MainActor in
+                elapsedSec = Int(Date().timeIntervalSince(startedAt))
+                if config.mode == "timed", elapsedSec >= config.timedSecs {
+                    finish(reason: .completed)
+                }
+            }
+        }
+    }
+
+    private func handleRepChange(newCount: Int) {
+        guard newCount > 0, newCount != lastSpokenRep, voiceEnabled, !resting else {
+            lastSpokenRep = newCount
+            return
+        }
+        lastSpokenRep = newCount
+
+        // 안드로이드와 동일한 음성 카운트 규칙: target/challenge는 카운트다운, 그 외는 카운트업.
+        let spoken: Int
+        switch config.mode {
+        case "target":
+            let target = config.targetCounts.indices.contains(currentSet - 1)
+                ? config.targetCounts[currentSet - 1]
+                : 20
+            spoken = max(0, target - newCount)
+        case "challenge":
+            spoken = max(0, 100 - newCount)
+        default:
+            spoken = newCount
+        }
+        speech.speak("\(spoken)")
     }
 
     // MARK: - 휴식 오버레이
@@ -217,8 +262,7 @@ struct WorkoutRunningView: View {
     // MARK: - Logic
 
     private var formattedTimeRemaining: String {
-        let elapsed = Int(Date().timeIntervalSince(startedAt))
-        let remaining = max(0, config.timedSecs - elapsed)
+        let remaining = max(0, config.timedSecs - elapsedSec)
         return String(format: "%d:%02d", remaining / 60, remaining % 60)
     }
 
