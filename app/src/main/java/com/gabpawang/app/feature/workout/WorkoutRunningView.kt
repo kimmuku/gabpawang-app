@@ -86,6 +86,7 @@ fun RunningView(
     restRemaining: Int,
     phase: String,
     elapsedSec: Int,
+    countdownRemaining: Int = 0,
     onCompleteSet: () -> Unit,
     onFinishAll: () -> Unit,
     onExtendRest: () -> Unit = {},
@@ -127,6 +128,40 @@ fun RunningView(
                     BtnPrimary(text = "세트 완료 ✓", onClick = onCompleteSet, color = GreenAccent)
                     BtnPrimary(text = "운동 완료", onClick = onFinishAll)
                 }
+            }
+        }
+    }
+
+    if (countdownRemaining > 0) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xE6080E18)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "자세를 잡아주세요",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$countdownRemaining",
+                    color = Yellow,
+                    fontSize = 120.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    lineHeight = 130.sp
+                )
+                Text(
+                    text = "초 후 시작",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
             }
         }
     }

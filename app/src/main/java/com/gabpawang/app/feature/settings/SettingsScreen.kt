@@ -24,6 +24,7 @@ import com.gabpawang.app.ui.theme.Yellow
 @Composable
 fun SettingsScreen(
     onNav: (String) -> Unit,
+    onFeedback: () -> Unit,
     voiceEnabled: Boolean,
     onVoiceChange: (Boolean) -> Unit,
     isDarkTheme: Boolean,
@@ -46,6 +47,9 @@ fun SettingsScreen(
 
                 SectionTitle("앱 설정")
                 SwitchRow("라이트 모드", !isDarkTheme) { onThemeChange(!it) }
+
+                SectionTitle("지원")
+                ClickableRow("불편사항 신고", "📢") { onFeedback() }
 
                 SectionTitle("앱 정보")
                 InfoRow(label = "버전", value = "1.0.0")

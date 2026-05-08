@@ -25,6 +25,7 @@ import com.gabpawang.app.WorkoutResult
 import com.gabpawang.app.nextThresholdFor
 import com.gabpawang.app.stageFor
 import com.gabpawang.app.thresholdFor
+import androidx.compose.ui.graphics.Color
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
 import com.gabpawang.app.ui.components.GabpaProgressBar
@@ -38,7 +39,8 @@ fun WorkoutResultScreen(
     result: WorkoutResult,
     charStage: Int,
     totalPushups: Int,
-    onHome: (adjustedTotal: Int, adjustedHistory: List<Int>) -> Unit
+    onSave: (adjustedTotal: Int, adjustedHistory: List<Int>) -> Unit,
+    onHome: () -> Unit
 ) {
     val colors = LocalAppColors.current
     var adjustedHistory by remember { mutableStateOf(result.history) }
@@ -143,7 +145,9 @@ fun WorkoutResultScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            BtnPrimary(text = "홈으로 돌아가기", onClick = { onHome(adjustedTotal, adjustedHistory) })
+            BtnPrimary(text = "기록 저장하기", onClick = { onSave(adjustedTotal, adjustedHistory) })
+            Spacer(modifier = Modifier.height(10.dp))
+            BtnPrimary(text = "홈으로 돌아가기", onClick = onHome, color = Color(0xFFCCCCCC))
             Spacer(modifier = Modifier.height(40.dp))
         }
     }

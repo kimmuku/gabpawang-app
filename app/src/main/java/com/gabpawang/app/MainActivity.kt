@@ -1,6 +1,7 @@
 package com.gabpawang.app
 
 import android.Manifest
+import android.app.Activity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -13,12 +14,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gabpawang.app.feature.character.CharacterScreen
@@ -26,6 +30,7 @@ import com.gabpawang.app.feature.home.HomeScreen
 import com.gabpawang.app.feature.notifications.NotificationScreen
 import com.gabpawang.app.feature.onboarding.TutorialScreen
 import com.gabpawang.app.feature.record.RecordScreen
+import com.gabpawang.app.feature.settings.FeedbackScreen
 import com.gabpawang.app.feature.settings.SettingsScreen
 import com.gabpawang.app.feature.workout.LevelUpScreen
 import com.gabpawang.app.feature.workout.WorkoutResultScreen
@@ -95,6 +100,13 @@ fun GabpaWangApp(
 
     // Re-provide LocalAppColors based on current theme preference so all children react to changes.
     val appColors = if (appState.isDarkTheme) DarkAppColors else LightAppColors
+
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as Activity).window
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !appState.isDarkTheme
+    }
+
     CompositionLocalProvider(LocalAppColors provides appColors) {
         // Permission gate is bypassed for non-camera screens.
         // We only require camera for the workout screen.
@@ -159,7 +171,7 @@ private fun AppRouter(
             result = appState.workoutResult ?: WorkoutResult(0, 0, emptyList()),
             charStage = charStage,
             totalPushups = totalPushups,
-            onHome = { adjustedTotal, adjustedHistory ->
+            onSave = { adjustedTotal, adjustedHistory ->
                 val prevStage = charStage
                 appState.workoutResult?.let { result ->
                     val finalResult = result.copy(total = adjustedTotal, history = adjustedHistory)
@@ -168,14 +180,14 @@ private fun AppRouter(
                     val newStage = stageFor(newTotal)
                     if (newStage > prevStage) {
                         appState.levelUpStage = newStage
-                        // Home is the base so back from levelup returns to home
                         appState.goRoot("home")
                         appState.go("levelup")
                     } else {
                         appState.goRoot("home")
                     }
                 } ?: appState.goRoot("home")
-            }
+            },
+            onHome = { appState.goRoot("home") }
         )
         "levelup" -> LevelUpScreen(
             newStage = appState.levelUpStage,
@@ -190,6 +202,7 @@ private fun AppRouter(
         "notifications" -> NotificationScreen(onBack = { appState.back() })
         "settings" -> SettingsScreen(
             onNav = { appState.goNav(it) },
+            onFeedback = { appState.go("feedback") },
             voiceEnabled = appState.voiceEnabled,
             onVoiceChange = { appState.voiceEnabled = it },
             isDarkTheme = appState.isDarkTheme,
@@ -199,5 +212,6 @@ private fun AppRouter(
                     .edit().putBoolean("dark_theme", dark).apply()
             }
         )
+        "feedback" -> FeedbackScreen(onBack = { appState.back() })
     }
 }

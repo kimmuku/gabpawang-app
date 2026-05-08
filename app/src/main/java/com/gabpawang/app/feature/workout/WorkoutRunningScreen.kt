@@ -40,6 +40,7 @@ fun WorkoutRunningScreen(
     var elapsedSec by remember { mutableStateOf(0) }
     var inRest by remember { mutableStateOf(false) }
     var restRemaining by remember { mutableStateOf(0) }
+    var countdownRemaining by remember { mutableStateOf(if (config.mode == "timed") 10 else 0) }
 
     val repCount by vm.repCount
     val phase by vm.phase
@@ -68,15 +69,25 @@ fun WorkoutRunningScreen(
         }
     }
 
-    // Reset on entry and start calibration immediately
+    // Reset on entry; timed mode defers calibration until countdown finishes
     LaunchedEffect(Unit) {
         vm.reset()
-        vm.startCalibration()
+        if (config.mode != "timed") vm.startCalibration()
     }
     DisposableEffect(Unit) { onDispose { vm.reset() } }
 
-    // Workout timer (1Hz tick)
+    // Pre-start countdown for timed mode, then kick off calibration
     LaunchedEffect(Unit) {
+        while (countdownRemaining > 0) {
+            delay(1000L)
+            countdownRemaining--
+        }
+        if (config.mode == "timed") vm.startCalibration()
+    }
+
+    // Workout timer (1Hz tick) — waits for countdown to finish before ticking
+    LaunchedEffect(Unit) {
+        while (countdownRemaining > 0) delay(200L)
         while (true) {
             delay(1000L)
             elapsedSec++
@@ -178,6 +189,7 @@ fun WorkoutRunningScreen(
             restRemaining = restRemaining,
             phase = phase,
             elapsedSec = elapsedSec,
+            countdownRemaining = countdownRemaining,
             onExtendRest = { restRemaining += 30 },
             onSkipRest = { restRemaining = 0 },
             onCompleteSet = {
