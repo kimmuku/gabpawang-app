@@ -59,6 +59,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var lastShoulderY: Float? = null
     private var noDetectFrames = 0
     private val HOLDOVER_FRAMES = 30  // ~1.0s at 30fps — covers full DOWN phase
+    // Track hip visibility so holdover frames don't advance calibration without body in frame
+    private var lastHipsVisible = false
 
     private var countdownJob: Job? = null
     private var isInCountdown = false
@@ -101,6 +103,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         poseDetected.value = false
         lastShoulderY = null
         noDetectFrames = 0
+        lastHipsVisible = false
 
         countdownJob = viewModelScope.launch {
             for (i in 5 downTo 1) {
@@ -128,6 +131,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         landmarks.value = null
         lastShoulderY = null
         noDetectFrames = 0
+        lastHipsVisible = false
     }
 
     private fun onLandmarksDetected(result: PoseLandmarkerResult) {
@@ -183,13 +187,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!isRunning.value) return
         if (isInCountdown) return
 
-        // Require hips visible — confirms shoulders + hips both in frame (proper push-up position)
+        // Require hips visible — confirms shoulders + hips both in frame (proper push-up position).
+        // During holdover (hasPose=false), only process if hips were visible in the last detected
+        // frame; this prevents calibration from advancing while the user is not in position.
         if (hasPose) {
             val lm = result.landmarks()[0]
-            val hipsVisible = listOfNotNull(lm.getOrNull(23), lm.getOrNull(24))
-                .any { it.visibility().orElse(0f) > 0.1f }
+            val hipLandmarks = listOfNotNull(lm.getOrNull(23), lm.getOrNull(24))
+            val hipsVisible = hipLandmarks.size == 2 &&
+                hipLandmarks.all { it.visibility().orElse(0f) > 0.5f }
             bodyInFrame.value = hipsVisible
+            lastHipsVisible = hipsVisible
             if (!hipsVisible) return
+        } else {
+            if (!lastHipsVisible) return
         }
 
         counter.process(midShoulderY)

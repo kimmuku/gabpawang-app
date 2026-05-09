@@ -138,7 +138,7 @@ class AppState(initialScreen: String = "home") {
 
     /** Pop the current screen; does nothing if already at root. */
     fun back() {
-        if (backStack.size > 1) backStack.removeLast()
+        if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
     }
 
     /** Bottom-nav routes always reset the stack so back exits the app from any tab. */

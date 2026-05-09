@@ -17,7 +17,11 @@ import androidx.compose.ui.platform.LocalContext
 import com.gabpawang.app.MainViewModel
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.WorkoutResult
+import com.gabpawang.app.nextThresholdFor
+import com.gabpawang.app.stageFor
 import kotlinx.coroutines.delay
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -27,11 +31,15 @@ import java.util.Locale
  *
  * Integrates with the existing [MainViewModel] camera + counting pipeline.
  */
+private val clockFormatter = DateTimeFormatter.ofPattern("M월 d일 (E) HH:mm:ss", Locale.KOREAN)
+private fun currentClock(): String = LocalDateTime.now().format(clockFormatter)
+
 @Composable
 fun WorkoutRunningScreen(
     config: WorkoutConfig,
     vm: MainViewModel,
     voiceEnabled: Boolean = false,
+    totalPushups: Int = 0,
     onFinish: (WorkoutResult) -> Unit
 ) {
     val context = LocalContext.current
@@ -41,6 +49,8 @@ fun WorkoutRunningScreen(
     var inRest by remember { mutableStateOf(false) }
     var restRemaining by remember { mutableStateOf(0) }
     var countdownRemaining by remember { mutableStateOf(if (config.mode == "timed") 10 else 0) }
+    var clockText by remember { mutableStateOf(currentClock()) }
+    val nextLevelGoal = remember(totalPushups) { nextThresholdFor(stageFor(totalPushups)) }
 
     val repCount by vm.repCount
     val phase by vm.phase
@@ -85,7 +95,13 @@ fun WorkoutRunningScreen(
         if (config.mode == "timed") vm.startCalibration()
     }
 
-    // Workout timer (1Hz tick) — waits for countdown to finish before ticking
+    // Clock and workout timer (1Hz tick each)
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000L)
+            clockText = currentClock()
+        }
+    }
     LaunchedEffect(Unit) {
         while (countdownRemaining > 0) delay(200L)
         while (true) {
@@ -190,6 +206,9 @@ fun WorkoutRunningScreen(
             phase = phase,
             elapsedSec = elapsedSec,
             countdownRemaining = countdownRemaining,
+            clockText = clockText,
+            displayTotal = totalPushups + setHistory.sum() + repCount,
+            nextLevelGoal = nextLevelGoal,
             onExtendRest = { restRemaining += 30 },
             onSkipRest = { restRemaining = 0 },
             onCompleteSet = {

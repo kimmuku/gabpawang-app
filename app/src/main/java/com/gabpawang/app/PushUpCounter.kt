@@ -30,6 +30,8 @@ class PushUpCounter {
         private const val PERCENTILE_HIGH = 0.85f
         private const val MIN_UP_FRAMES = 9     // must stay UP for 0.3s — supports ~1.5/s pace
         private const val MIN_DOWN_FRAMES = 11  // must stay DOWN for 0.37s before rep counts
+        // Seeded band on warmup exit so the first rep counts before DOWN frames accumulate
+        private const val INIT_BAND_SEED = 0.15f
     }
 
     fun start() {
@@ -67,6 +69,13 @@ class PushUpCounter {
         }
 
         if (state == PushUpState.WARMING) {
+            // Seed the initial band so the first rep is counted before DOWN frames
+            // accumulate in the rolling window; without this, band stays near 0 until
+            // the user has completed one full rep.
+            val wSorted = window.sorted()
+            val wn = wSorted.size
+            yLow = wSorted[(wn * PERCENTILE_LOW).toInt()]
+            yHigh = yLow + INIT_BAND_SEED
             state = PushUpState.UP
             stateFrames = 0
         }
@@ -74,7 +83,8 @@ class PushUpCounter {
         val sorted = window.sorted()
         val n = sorted.size
         val yl = sorted[(n * PERCENTILE_LOW).toInt()]
-        val yh = sorted[(n * PERCENTILE_HIGH).toInt()]
+        // Maintain at least INIT_BAND_SEED band until real DOWN frames push yHigh higher
+        val yh = maxOf(sorted[(n * PERCENTILE_HIGH).toInt()], yl + INIT_BAND_SEED)
         val band = yh - yl
 
         yLow = yl

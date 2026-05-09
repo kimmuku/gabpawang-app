@@ -165,6 +165,7 @@ private fun AppRouter(
             config = appState.workoutConfig,
             vm = vm,
             voiceEnabled = appState.voiceEnabled,
+            totalPushups = totalPushups,
             onFinish = { appState.onWorkoutFinish(it) }
         )
         "result" -> WorkoutResultScreen(

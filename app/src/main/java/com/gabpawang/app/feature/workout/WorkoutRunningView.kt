@@ -20,61 +20,6 @@ import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.RedAlert
 import com.gabpawang.app.ui.theme.Yellow
 
-/** Pre-workout instructional view; user taps "운동 시작하기" to enter the running state. */
-@Composable
-fun ReadyView(config: WorkoutConfig, onStart: () -> Unit) {
-    val colors = LocalAppColors.current
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Spacer(modifier = Modifier.height(40.dp))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "카메라 준비 중",
-                color = colors.textPrimary,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "푸쉬업 자세를 잡고 화면에 어깨가 보이게 해주세요.",
-                color = colors.textSub,
-                fontSize = 13.sp
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "모드: ${displayMode(config.mode)}",
-                color = colors.accent,
-                fontSize = 12.sp
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
-                .background(colors.bgCard)
-                .border(1.dp, colors.borderCard, androidx.compose.foundation.shape.RoundedCornerShape(20.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("👤", fontSize = 80.sp)
-        }
-        Box(modifier = Modifier.fillMaxWidth()) {
-            BtnPrimary(text = "운동 시작하기 💪", onClick = onStart)
-        }
-    }
-}
-
-fun displayMode(mode: String): String = when (mode) {
-    "free" -> "자유"
-    "target" -> "목표"
-    "timed" -> "타임어택"
-    "challenge" -> "챌린지 100"
-    else -> mode
-}
-
 /** Workout running view: shows live counter, set badges, action buttons, and rest overlay. */
 @Composable
 fun RunningView(
@@ -87,6 +32,9 @@ fun RunningView(
     phase: String,
     elapsedSec: Int,
     countdownRemaining: Int = 0,
+    clockText: String = "",
+    displayTotal: Int = 0,
+    nextLevelGoal: Int = 0,
     onCompleteSet: () -> Unit,
     onFinishAll: () -> Unit,
     onExtendRest: () -> Unit = {},
@@ -97,9 +45,27 @@ fun RunningView(
         modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             Spacer(modifier = Modifier.height(16.dp))
             CountingStatusBadge(phase = phase)
+            if (clockText.isNotEmpty()) {
+                Text(
+                    text = clockText,
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "누적 ${displayTotal}개  /  다음레벨 ${nextLevelGoal}개",
+                    color = Yellow,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             if (setHistory.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     setHistory.forEachIndexed { i, n ->
@@ -109,11 +75,22 @@ fun RunningView(
             }
         }
 
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            if (config.mode == "timed") {
-                TimedModeDisplay(totalSecs = config.timedSecs, elapsedSec = elapsedSec, repCount = repCount)
-            } else {
-                StandardModeDisplay(config = config, repCount = repCount, currentSet = currentSet)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                if (config.mode == "timed") {
+                    TimedModeDisplay(totalSecs = config.timedSecs, elapsedSec = elapsedSec, repCount = repCount)
+                } else {
+                    StandardModeDisplay(config = config, repCount = repCount, currentSet = currentSet)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-120).dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CheerOverlay(repCount = repCount)
             }
         }
 
@@ -252,7 +229,7 @@ private fun StandardModeDisplay(config: WorkoutConfig, repCount: Int, currentSet
             "challenge" -> "100개 챌린지"
             else -> "${currentSet}세트"
         }
-        Text(label, color = colors.textSub, fontSize = 14.sp)
+        Text(label, color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         Text(
             text = display,
             color = colors.accent,
@@ -260,7 +237,7 @@ private fun StandardModeDisplay(config: WorkoutConfig, repCount: Int, currentSet
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 120.sp
         )
-        Text("개", color = colors.textSub, fontSize = 18.sp)
+        Text("개", color = colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
 }
 
