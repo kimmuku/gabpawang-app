@@ -123,6 +123,7 @@ class AppState(initialScreen: String = "home") {
     var workoutConfig by mutableStateOf(WorkoutConfig("free"))
     var levelUpStage by mutableStateOf(1)
     var voiceEnabled by mutableStateOf(true)
+    var musicEnabled by mutableStateOf(false)
     var isDarkTheme by mutableStateOf(true)
 
     /** Push a new screen onto the back stack. */

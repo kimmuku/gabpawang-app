@@ -71,6 +71,7 @@ fun GabpaWangApp(
     val totalPushups by appVm.totalPushups.collectAsStateWithLifecycle()
     val charStage by appVm.charStage.collectAsStateWithLifecycle()
     val oneRepMax by appVm.oneRepMax.collectAsStateWithLifecycle()
+    val streak by appVm.streak.collectAsStateWithLifecycle()
 
     var hasPermission by remember {
         mutableStateOf(
@@ -122,6 +123,7 @@ fun GabpaWangApp(
             totalPushups = totalPushups,
             charStage = charStage,
             oneRepMax = oneRepMax,
+            streak = streak,
             context = context
         )
     }
@@ -135,6 +137,7 @@ private fun AppRouter(
     totalPushups: Int,
     charStage: Int,
     oneRepMax: Int,
+    streak: Int,
     context: android.content.Context
 ) {
     when (appState.screen) {
@@ -150,6 +153,7 @@ private fun AppRouter(
             charStage = charStage,
             totalPushups = totalPushups,
             oneRepMax = oneRepMax,
+            streak = streak,
             onNav = { appState.goNav(it) },
             onStartWorkout = { appState.go("workoutStart") },
             onCharacter = { appState.go("character") }
@@ -165,6 +169,7 @@ private fun AppRouter(
             config = appState.workoutConfig,
             vm = vm,
             voiceEnabled = appState.voiceEnabled,
+            musicEnabled = appState.musicEnabled,
             totalPushups = totalPushups,
             onFinish = { appState.onWorkoutFinish(it) }
         )
@@ -206,6 +211,8 @@ private fun AppRouter(
             onFeedback = { appState.go("feedback") },
             voiceEnabled = appState.voiceEnabled,
             onVoiceChange = { appState.voiceEnabled = it },
+            musicEnabled = appState.musicEnabled,
+            onMusicChange = { appState.musicEnabled = it },
             isDarkTheme = appState.isDarkTheme,
             onThemeChange = { dark ->
                 appState.isDarkTheme = dark

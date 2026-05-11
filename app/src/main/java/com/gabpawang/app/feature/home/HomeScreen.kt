@@ -42,6 +42,7 @@ fun HomeScreen(
     charStage: Int,
     totalPushups: Int,
     oneRepMax: Int,
+    streak: Int = 0,
     onNav: (String) -> Unit,
     onStartWorkout: () -> Unit,
     onCharacter: () -> Unit,
@@ -123,6 +124,14 @@ fun HomeScreen(
                         }
                 ) {
                     GabpaChar(stage = charStage, sizeDp = 180.dp)
+                    if (streak >= 2) {
+                        StreakBadge(
+                            streak = streak,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 12.dp, y = (-4).dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -198,6 +207,28 @@ fun HomeScreen(
 
             BottomNav(active = "home", onNav = onNav)
         }
+    }
+}
+
+@Composable
+private fun StreakBadge(streak: Int, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color(0xFFFF6B00))
+            .border(1.dp, Color(0xFFFF9A4D), RoundedCornerShape(50))
+            .padding(horizontal = 9.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text("🔥", fontSize = 12.sp, lineHeight = 14.sp)
+        Text(
+            text = "${streak}일 연속",
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.ExtraBold,
+            lineHeight = 14.sp
+        )
     }
 }
 

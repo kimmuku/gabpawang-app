@@ -27,6 +27,8 @@ fun SettingsScreen(
     onFeedback: () -> Unit,
     voiceEnabled: Boolean,
     onVoiceChange: (Boolean) -> Unit,
+    musicEnabled: Boolean,
+    onMusicChange: (Boolean) -> Unit,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ) {
@@ -44,6 +46,7 @@ fun SettingsScreen(
             ) {
                 SectionTitle("운동 설정")
                 SwitchRow("음성 카운트", voiceEnabled, onVoiceChange)
+                SwitchRow("배경음악", musicEnabled, onMusicChange)
 
                 SectionTitle("앱 설정")
                 SwitchRow("라이트 모드", !isDarkTheme) { onThemeChange(!it) }

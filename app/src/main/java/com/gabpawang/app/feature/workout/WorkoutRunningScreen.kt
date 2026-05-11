@@ -1,5 +1,6 @@
 package com.gabpawang.app.feature.workout
 
+import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.gabpawang.app.R
 import com.gabpawang.app.MainViewModel
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.WorkoutResult
@@ -39,6 +41,7 @@ fun WorkoutRunningScreen(
     config: WorkoutConfig,
     vm: MainViewModel,
     voiceEnabled: Boolean = false,
+    musicEnabled: Boolean = false,
     totalPushups: Int = 0,
     onFinish: (WorkoutResult) -> Unit
 ) {
@@ -77,6 +80,34 @@ fun WorkoutRunningScreen(
             tts?.shutdown()
             ttsRef.value = null
         }
+    }
+
+    // Background music — starts after countdown, pauses during rest, resumes on next set
+    val bgmPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
+    var bgmStarted by remember { mutableStateOf(false) }
+    DisposableEffect(Unit) {
+        if (musicEnabled) {
+            val mp = MediaPlayer.create(context, R.raw.workout_bgm)
+            mp?.isLooping = true
+            bgmPlayer.value = mp
+        }
+        onDispose {
+            bgmPlayer.value?.stop()
+            bgmPlayer.value?.release()
+            bgmPlayer.value = null
+        }
+    }
+    LaunchedEffect(Unit) {
+        while (countdownRemaining > 0) delay(200L)
+        if (musicEnabled) {
+            bgmPlayer.value?.start()
+            bgmStarted = true
+        }
+    }
+    LaunchedEffect(inRest) {
+        if (!musicEnabled || !bgmStarted) return@LaunchedEffect
+        if (inRest) bgmPlayer.value?.pause()
+        else bgmPlayer.value?.start()
     }
 
     // Reset on entry; timed mode defers calibration until countdown finishes

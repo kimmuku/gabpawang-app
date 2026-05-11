@@ -87,7 +87,7 @@ fun RunningView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
-                    .offset(y = (-120).dp),
+                    .offset(y = (-30).dp),
                 contentAlignment = Alignment.Center
             ) {
                 CheerOverlay(repCount = repCount)
@@ -178,6 +178,8 @@ fun RunningView(
                 BtnPrimary(text = "다시 시작 ▶", onClick = onSkipRest, color = GreenAccent)
                 Spacer(modifier = Modifier.height(10.dp))
                 BtnPrimary(text = "휴식 30초 연장", onClick = onExtendRest, color = Color.White)
+                Spacer(modifier = Modifier.height(10.dp))
+                BtnPrimary(text = "저장하고 홈으로", onClick = onFinishAll, color = RedAlert)
             }
         }
     }
