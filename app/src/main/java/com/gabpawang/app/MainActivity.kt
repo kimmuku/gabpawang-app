@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gabpawang.app.billing.BillingManager
 import com.gabpawang.app.feature.character.CharacterScreen
 import com.gabpawang.app.feature.home.HomeScreen
 import com.gabpawang.app.feature.notifications.NotificationScreen
@@ -72,6 +73,8 @@ fun GabpaWangApp(
     val charStage by appVm.charStage.collectAsStateWithLifecycle()
     val oneRepMax by appVm.oneRepMax.collectAsStateWithLifecycle()
     val streak by appVm.streak.collectAsStateWithLifecycle()
+    val isAdFree by BillingManager.isAdFree.collectAsStateWithLifecycle()
+    val adPrice by BillingManager.price.collectAsStateWithLifecycle()
 
     var hasPermission by remember {
         mutableStateOf(
@@ -124,6 +127,8 @@ fun GabpaWangApp(
             charStage = charStage,
             oneRepMax = oneRepMax,
             streak = streak,
+            isAdFree = isAdFree,
+            adPrice = adPrice,
             context = context
         )
     }
@@ -138,6 +143,8 @@ private fun AppRouter(
     charStage: Int,
     oneRepMax: Int,
     streak: Int,
+    isAdFree: Boolean,
+    adPrice: String,
     context: android.content.Context
 ) {
     when (appState.screen) {
@@ -218,6 +225,11 @@ private fun AppRouter(
                 appState.isDarkTheme = dark
                 context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
                     .edit().putBoolean("dark_theme", dark).apply()
+            },
+            isAdFree = isAdFree,
+            adRemovalPrice = adPrice,
+            onRemoveAds = {
+                (context as? Activity)?.let { BillingManager.launchPurchase(it) }
             }
         )
         "feedback" -> FeedbackScreen(onBack = { appState.back() })

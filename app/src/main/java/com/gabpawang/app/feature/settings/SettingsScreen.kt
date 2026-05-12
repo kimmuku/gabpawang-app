@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
+import com.gabpawang.app.ads.AdBanner
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.SectionTitle
 import com.gabpawang.app.ui.components.StatusBarSpacer
@@ -30,7 +31,10 @@ fun SettingsScreen(
     musicEnabled: Boolean,
     onMusicChange: (Boolean) -> Unit,
     isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    isAdFree: Boolean = false,
+    adRemovalPrice: String = "4,900원",
+    onRemoveAds: () -> Unit = {}
 ) {
     val colors = LocalAppColors.current
     Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
@@ -51,12 +55,20 @@ fun SettingsScreen(
                 SectionTitle("앱 설정")
                 SwitchRow("라이트 모드", !isDarkTheme) { onThemeChange(!it) }
 
+                SectionTitle("결제")
+                if (isAdFree) {
+                    InfoRow(label = "🚫 광고 제거", value = "적용됨 ✓")
+                } else {
+                    ClickableRow("광고 제거 ($adRemovalPrice)", "🚫") { onRemoveAds() }
+                }
+
                 SectionTitle("지원")
                 ClickableRow("불편사항 신고", "📢") { onFeedback() }
 
                 SectionTitle("앱 정보")
                 InfoRow(label = "버전", value = "1.0.0")
             }
+            AdBanner()
             BottomNav(active = "settings", onNav = onNav)
         }
     }

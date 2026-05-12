@@ -25,11 +25,11 @@ class PushUpCounter {
         private const val MIN_INIT_FRAMES = 45  // ~1.5s warmup after countdown ends
         private const val DOWN_FRACTION = 0.45f
         private const val UP_FRACTION = 0.20f
-        private const val MIN_BAND = 0.12f
+        private const val MIN_BAND = 0.06f
         private const val PERCENTILE_LOW = 0.15f
         private const val PERCENTILE_HIGH = 0.85f
-        private const val MIN_UP_FRAMES = 15    // must stay UP for 0.5s — filters walking bounce
-        private const val MIN_DOWN_FRAMES = 18  // must stay DOWN for 0.6s before rep counts
+        private const val MIN_UP_FRAMES = 9
+        private const val MIN_DOWN_FRAMES = 11
         // Seeded band on warmup exit so the first rep counts before DOWN frames accumulate
         private const val INIT_BAND_SEED = 0.15f
     }

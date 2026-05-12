@@ -13,7 +13,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gabpawang.app.STAGE_NAMES
+import com.gabpawang.app.ads.AdBanner
 import com.gabpawang.app.nationalRankText
 import com.gabpawang.app.nextThresholdFor
 import com.gabpawang.app.thresholdFor
@@ -55,6 +58,7 @@ fun HomeScreen(
     val stageRange = (nextThreshold - curThreshold).coerceAtLeast(1)
     val remaining = (nextThreshold - totalPushups).coerceAtLeast(0)
     val recordState by recordVm.uiState.collectAsStateWithLifecycle()
+    var showRankDialog by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -85,7 +89,7 @@ fun HomeScreen(
                         val rankText = nationalRankText(oneRepMax)
                         if (rankText != null) {
                             StatCard(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).clickable { showRankDialog = true },
                                 icon = "🏆",
                                 label = "전국 성인남자",
                                 value = rankText
@@ -137,10 +141,11 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "${charStage}단계 · ${STAGE_NAMES[charStage]}",
+                    text = "${charStage}단계 · ${STAGE_NAMES[charStage]} ›",
                     color = colors.textPrimary,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onCharacter() }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -205,7 +210,15 @@ fun HomeScreen(
                 BtnPrimary(text = "푸쉬업 시작 💪", onClick = onStartWorkout)
             }
 
+            AdBanner()
             BottomNav(active = "home", onNav = onNav)
+        }
+
+        if (showRankDialog) {
+            RankBreakdownDialog(
+                currentMax = oneRepMax,
+                onDismiss = { showRankDialog = false }
+            )
         }
     }
 }

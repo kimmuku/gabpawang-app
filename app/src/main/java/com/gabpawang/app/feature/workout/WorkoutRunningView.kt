@@ -4,12 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +31,7 @@ fun RunningView(
     setHistory: List<Int>,
     inRest: Boolean,
     restRemaining: Int,
+    restTotalSec: Int = 60,
     phase: String,
     elapsedSec: Int,
     countdownRemaining: Int = 0,
@@ -165,17 +168,32 @@ fun RunningView(
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "${restRemaining}",
-                    color = colors.accent,
-                    fontSize = 100.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 110.sp
-                )
-                Text("초 후 다음 세트", color = colors.textSub, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(40.dp))
-                BtnPrimary(text = "다시 시작 ▶", onClick = onSkipRest, color = GreenAccent)
+                Spacer(modifier = Modifier.height(20.dp))
+                Box(
+                    modifier = Modifier.size(220.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val progress = if (restTotalSec > 0) restRemaining.toFloat() / restTotalSec else 0f
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxSize(),
+                        strokeWidth = 14.dp,
+                        color = colors.accent,
+                        trackColor = colors.bgCard,
+                        strokeCap = StrokeCap.Round
+                    )
+                    Text(
+                        text = "${restRemaining}",
+                        color = colors.accent,
+                        fontSize = 78.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 84.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(14.dp))
+                Text("초 후 다음 세트", color = Color.White, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(28.dp))
+                BtnPrimary(text = "바로시작 ▶", onClick = onSkipRest, color = GreenAccent)
                 Spacer(modifier = Modifier.height(10.dp))
                 BtnPrimary(text = "휴식 30초 연장", onClick = onExtendRest, color = Color.White)
                 Spacer(modifier = Modifier.height(10.dp))

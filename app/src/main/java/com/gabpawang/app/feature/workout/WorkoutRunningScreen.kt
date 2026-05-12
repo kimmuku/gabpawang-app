@@ -1,5 +1,6 @@
 package com.gabpawang.app.feature.workout
 
+import android.app.Activity
 import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.gabpawang.app.R
 import com.gabpawang.app.MainViewModel
+import com.gabpawang.app.ads.InterstitialAdManager
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.WorkoutResult
 import com.gabpawang.app.nextThresholdFor
@@ -46,11 +48,13 @@ fun WorkoutRunningScreen(
     onFinish: (WorkoutResult) -> Unit
 ) {
     val context = LocalContext.current
+    val activity = context as? Activity
     var currentSet by remember { mutableStateOf(1) }
     var setHistory by remember { mutableStateOf<List<Int>>(emptyList()) }
     var elapsedSec by remember { mutableStateOf(0) }
     var inRest by remember { mutableStateOf(false) }
     var restRemaining by remember { mutableStateOf(0) }
+    var restTotalSec by remember { mutableStateOf(60) }
     var countdownRemaining by remember { mutableStateOf(if (config.mode == "timed") 10 else 0) }
     var clockText by remember { mutableStateOf(currentClock()) }
     val nextLevelGoal = remember(totalPushups) { nextThresholdFor(stageFor(totalPushups)) }
@@ -87,8 +91,14 @@ fun WorkoutRunningScreen(
     var bgmStarted by remember { mutableStateOf(false) }
     DisposableEffect(Unit) {
         if (musicEnabled) {
-            val mp = MediaPlayer.create(context, R.raw.workout_bgm)
+            val trackId = listOf(
+                R.raw.workout_bgm_1,
+                R.raw.workout_bgm_2,
+                R.raw.workout_bgm_3
+            ).random()
+            val mp = MediaPlayer.create(context, trackId)
             mp?.isLooping = true
+            mp?.setVolume(0.5f, 0.5f)
             bgmPlayer.value = mp
         }
         onDispose {
@@ -218,9 +228,11 @@ fun WorkoutRunningScreen(
                     setHistory = updatedHistory
                     currentSet++
                     restRemaining = 60
+                    restTotalSec = 60
                     inRest = true
                     vm.reset()
                 }
+                activity?.let { InterstitialAdManager.onSetCompleted(it) }
             }
         }
     }
@@ -234,13 +246,17 @@ fun WorkoutRunningScreen(
             setHistory = setHistory,
             inRest = inRest,
             restRemaining = restRemaining,
+            restTotalSec = restTotalSec,
             phase = phase,
             elapsedSec = elapsedSec,
             countdownRemaining = countdownRemaining,
             clockText = clockText,
             displayTotal = totalPushups + setHistory.sum() + repCount,
             nextLevelGoal = nextLevelGoal,
-            onExtendRest = { restRemaining += 30 },
+            onExtendRest = {
+                restRemaining += 30
+                restTotalSec += 30
+            },
             onSkipRest = { restRemaining = 0 },
             onCompleteSet = {
                 val updatedHistory = setHistory + repCount
@@ -257,9 +273,11 @@ fun WorkoutRunningScreen(
                     setHistory = updatedHistory
                     currentSet++
                     restRemaining = 60
+                    restTotalSec = 60
                     inRest = true
                     vm.reset()
                 }
+                activity?.let { InterstitialAdManager.onSetCompleted(it) }
             },
             onFinishAll = {
                 val finalHistory = if (repCount > 0) setHistory + repCount else setHistory

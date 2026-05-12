@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gabpawang.app.ads.AdBanner
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.StatusBarSpacer
 import com.gabpawang.app.ui.theme.LocalAppColors
@@ -36,6 +37,7 @@ fun RecordScreen(
             Box(modifier = Modifier.weight(1f)) {
                 CalendarTab(uiState)
             }
+            AdBanner()
             BottomNav(active = "record", onNav = onNav)
         }
     }
