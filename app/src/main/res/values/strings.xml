@@ -1,3 +1,371 @@
 <resources>
     <string name="app_name">갑빠왕</string>
+
+    <!-- ============================================================ -->
+    <!-- Common -->
+    <!-- ============================================================ -->
+    <string name="common_close">닫기</string>
+    <string name="common_save">저장</string>
+    <string name="common_back">뒤로</string>
+    <string name="common_next">다음</string>
+    <string name="common_start">시작</string>
+    <string name="common_confirm">확인</string>
+    <string name="common_cancel">취소</string>
+    <string name="common_continue">계속하기</string>
+    <string name="common_retry">다시 시도</string>
+    <string name="common_count_unit">개</string>
+    <string name="common_count_format">%1$d개</string>
+    <string name="common_times_unit">회</string>
+    <string name="common_times_format">%1$d회</string>
+    <string name="common_minutes_format">%1$d분</string>
+
+    <!-- ============================================================ -->
+    <!-- Permission / Status / Error screens -->
+    <!-- ============================================================ -->
+    <string name="permission_camera_required">카메라 권한이 필요합니다</string>
+    <string name="permission_allow">권한 허용</string>
+    <string name="downloading_title">BlazePose 모델 다운로드 중</string>
+    <string name="downloading_subtitle">처음 실행 시 1회만 (~9 MB)</string>
+    <string name="downloading_progress">%1$d%%</string>
+    <string name="error_title">오류 발생</string>
+    <string name="error_model_load_failed">모델 로드 실패</string>
+
+    <!-- ============================================================ -->
+    <!-- ViewModel phase labels -->
+    <!-- ============================================================ -->
+    <string name="phase_ready">준비</string>
+    <string name="phase_warming_format">준비 중... %1$d%%</string>
+    <string name="phase_up">UP ↑</string>
+    <string name="phase_down">DOWN ↓</string>
+
+    <!-- ============================================================ -->
+    <!-- Home screen -->
+    <!-- ============================================================ -->
+    <string name="home_stat_one_rep_max">1회 최고 기록</string>
+    <string name="home_stat_national_rank">전국 성인남자</string>
+    <string name="home_stage_label_format">%1$d단계 · %2$s ›</string>
+    <string name="home_stage_short_format">%1$d단계</string>
+    <string name="home_next_level_remaining_format">레벨업까지 %1$d개</string>
+    <string name="home_next_stage_locked_format">%1$d단계 🔒</string>
+    <string name="home_progress_percent_format">%1$d%%</string>
+    <string name="home_start_workout">푸쉬업 시작 💪</string>
+    <string name="home_streak_format">%1$d일 연속</string>
+
+    <!-- ============================================================ -->
+    <!-- Rank dialog (HomeRankDialog) -->
+    <!-- ============================================================ -->
+    <string name="rank_dialog_title">🏆 전국 성인남자 푸시업 기록</string>
+    <string name="rank_dialog_subtitle">한국 성인남자 1회 최대 푸시업 횟수 분포 추정치</string>
+    <string name="rank_dialog_col_record">1회 최고 기록</string>
+    <string name="rank_dialog_col_rank">전국 순위</string>
+    <string name="rank_dialog_row_format">%1$d개 이상</string>
+    <string name="rank_dialog_disclaimer">* 공식 통계가 아닌 참고용 추정치입니다.</string>
+
+    <!-- National rank text values (from AppState.nationalRankText) -->
+    <string name="rank_top_0_2">상위 약 0.2%%</string>
+    <string name="rank_top_0_3">상위 약 0.3%%</string>
+    <string name="rank_top_0_5">상위 약 0.5%%</string>
+    <string name="rank_top_0_8">상위 약 0.8%%</string>
+    <string name="rank_top_1">상위 약 1%%</string>
+    <string name="rank_top_1_5">상위 약 1.5%%</string>
+    <string name="rank_top_2_5">상위 약 2.5%%</string>
+    <string name="rank_top_4_5">상위 약 4.5%%</string>
+    <string name="rank_top_7">상위 약 7%%</string>
+    <string name="rank_top_10">상위 약 10%%</string>
+    <string name="rank_top_14">상위 약 14%%</string>
+    <string name="rank_top_22">상위 약 22%%</string>
+    <string name="rank_top_32">상위 약 32%%</string>
+    <string name="rank_top_45">상위 약 45%%</string>
+    <string name="rank_top_57">상위 약 57%%</string>
+    <string name="rank_top_70">상위 약 70%%</string>
+    <string name="rank_top_85">상위 약 85%%</string>
+    <string name="rank_top_92">상위 약 92%%</string>
+    <string name="rank_bottom">하위권</string>
+
+    <!-- ============================================================ -->
+    <!-- Mini calendar / weekday labels -->
+    <!-- ============================================================ -->
+    <string name="calendar_month_format">yyyy년 M월</string>
+    <string name="calendar_md_format">M월 d일</string>
+    <string name="calendar_day_format">%1$d월 %2$d일</string>
+    <string name="weekday_sun">일</string>
+    <string name="weekday_mon">월</string>
+    <string name="weekday_tue">화</string>
+    <string name="weekday_wed">수</string>
+    <string name="weekday_thu">목</string>
+    <string name="weekday_fri">금</string>
+    <string name="weekday_sat">토</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout start screen -->
+    <!-- ============================================================ -->
+    <string name="workout_start_title">푸쉬업 시작</string>
+    <string name="workout_start_mode_select">모드 선택</string>
+    <string name="workout_start_time">운동 시간</string>
+    <string name="workout_start_custom_set">직접 설정</string>
+    <string name="workout_start_sets_label">세트 수</string>
+    <string name="workout_start_per_set_count">세트별 횟수</string>
+    <string name="workout_start_set_index_format">%1$d세트</string>
+    <string name="workout_start_camera_guide">촬영 가이드</string>
+    <string name="workout_start_camera_guide_cd">촬영 가이드</string>
+
+    <!-- Workout mode display labels -->
+    <string name="workout_mode_free">자유</string>
+    <string name="workout_mode_target">목표</string>
+    <string name="workout_mode_timed">타임어택</string>
+    <string name="workout_mode_challenge">챌린지 100</string>
+
+    <!-- Workout mode option cards (id strings stay) -->
+    <string name="workout_mode_free_title">자유 모드</string>
+    <string name="workout_mode_free_desc">원하는 만큼 운동하세요</string>
+    <string name="workout_mode_target_title">목표 모드</string>
+    <string name="workout_mode_target_desc">세트별 목표 개수 설정</string>
+    <string name="workout_mode_timed_title">타임어택</string>
+    <string name="workout_mode_timed_desc">시간 설정 후 최대 횟수 측정</string>
+    <string name="workout_mode_challenge_title">챌린지 모드</string>
+    <string name="workout_mode_challenge_desc">100개 한 번에 도전</string>
+    <string name="workout_mode_udt_title">UDT 푸쉬업</string>
+    <string name="workout_mode_udt_desc">신호음 템포에 맞춰 정확한 3초 사이클</string>
+    <string name="workout_start_udt_target">목표 횟수</string>
+    <string name="udt_phase_down">내려가</string>
+    <string name="udt_phase_up">올라와</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout ready view -->
+    <!-- ============================================================ -->
+    <string name="ready_title">카메라 준비 중</string>
+    <string name="ready_subtitle">푸쉬업 자세를 잡고 화면에 어깨가 보이게 해주세요.</string>
+    <string name="ready_mode_format">모드: %1$s</string>
+    <string name="ready_start_button">운동 시작하기 💪</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout running view -->
+    <!-- ============================================================ -->
+    <string name="workout_clock_format">M월 d일 (E) HH:mm:ss</string>
+    <string name="workout_accumulated_and_next_level">누적 %1$d개  /  다음레벨 %2$d개</string>
+    <string name="workout_set_history_format">%1$d세트 %2$d</string>
+    <string name="workout_pose_prompt">자세를 잡아주세요</string>
+    <string name="workout_seconds_until_start">초 후 시작</string>
+    <string name="workout_rest_title">휴식 시간</string>
+    <string name="workout_seconds_until_next_set">초 후 다음 세트</string>
+    <string name="workout_start_now">바로시작 ▶</string>
+    <string name="workout_extend_rest">휴식 30초 연장</string>
+    <string name="workout_save_and_home">저장하고 홈으로</string>
+    <string name="workout_give_up">포기하기</string>
+    <string name="workout_stop">중단하기</string>
+    <string name="workout_complete_set">세트 완료 ✓</string>
+    <string name="workout_finish_all">운동 완료</string>
+    <string name="workout_counting_ready">카운팅 준비 완료</string>
+    <string name="workout_counting_waiting">카운팅 준비 대기</string>
+    <string name="workout_counting_with_phase_format">%1$s  ·  %2$s</string>
+    <string name="workout_remaining_time">남은 시간</string>
+    <string name="workout_time_format">%1$d:%2$02d</string>
+    <string name="workout_completed_count">개 완료</string>
+    <string name="workout_set_remaining_count_format">%1$d세트 남은 횟수</string>
+    <string name="workout_set_label_format">%1$d세트</string>
+    <string name="workout_challenge_100">100개 챌린지</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout result screen -->
+    <!-- ============================================================ -->
+    <string name="result_title">운동 완료! 🎉</string>
+    <string name="result_subtitle">오늘의 기록을 확인하세요</string>
+    <string name="result_label_sets">세트</string>
+    <string name="result_label_duration">운동시간</string>
+    <string name="result_label_total">총 횟수</string>
+    <string name="result_section_per_set">세트별 기록</string>
+    <string name="result_ai_measured_format">AI 측정: %1$d개</string>
+    <string name="result_evolution_progress">진화 진행도</string>
+    <string name="result_gained_format">+%1$d개</string>
+    <string name="result_stage_label_format">%1$d단계 · %2$s</string>
+    <string name="result_remaining_to_next_format">다음까지 %1$d개</string>
+    <string name="result_save_button">기록 저장하기</string>
+    <string name="result_home_button">홈으로 돌아가기</string>
+    <string name="result_set_index_format">%1$d세트</string>
+    <string name="result_set_count_format">%1$d개</string>
+
+    <!-- ============================================================ -->
+    <!-- Level up screen -->
+    <!-- ============================================================ -->
+    <string name="levelup_header">⚡ 단계 진화!</string>
+    <string name="levelup_stage_format">%1$d단계 달성!</string>
+    <string name="levelup_threshold_format">누적 %1$d개 돌파를 축하해요!</string>
+    <string name="levelup_continue">계속 성장하기 🚀</string>
+
+    <!-- ============================================================ -->
+    <!-- Record screen -->
+    <!-- ============================================================ -->
+    <string name="record_title">기록</string>
+    <string name="record_no_workout">운동 기록 없음</string>
+    <string name="record_day_total">하루 합계  </string>
+    <string name="record_day_total_value_format">%1$d회</string>
+    <string name="record_set_col_format">%1$d세트</string>
+    <string name="record_total_col">합계</string>
+    <string name="record_session_index_format">운동 %1$d</string>
+    <string name="record_reps_format">%1$d회</string>
+    <string name="record_dash">-</string>
+    <string name="record_streak_active_format">%1$d일 연속 운동 중!</string>
+    <string name="record_streak_inactive">오늘 운동을 시작해요!</string>
+    <string name="record_streak_keep_going">계속 이어가세요</string>
+
+    <!-- ============================================================ -->
+    <!-- Settings screen -->
+    <!-- ============================================================ -->
+    <string name="settings_title">설정</string>
+    <string name="settings_section_workout">운동 설정</string>
+    <string name="settings_voice_count">음성 카운트</string>
+    <string name="settings_background_music">배경음악</string>
+    <string name="settings_section_app">앱 설정</string>
+    <string name="settings_light_mode">라이트 모드</string>
+    <string name="settings_english">English</string>
+    <string name="settings_language">언어</string>
+    <string name="dialog_language_title">언어 선택</string>
+    <string name="settings_section_payment">결제</string>
+    <string name="settings_remove_ads_label">🚫 광고 제거</string>
+    <string name="settings_remove_ads_active">적용됨 ✓</string>
+    <string name="settings_remove_ads_format">광고 제거 (%1$s)</string>
+    <string name="settings_remove_ads_icon">🚫</string>
+    <string name="settings_section_support">지원</string>
+    <string name="settings_report_issue">불편사항 신고</string>
+    <string name="settings_report_issue_icon">📢</string>
+    <string name="settings_section_about">앱 정보</string>
+    <string name="settings_version">버전</string>
+    <string name="settings_version_value">1.0.0</string>
+    <string name="billing_fallback_price">4,900원</string>
+
+    <!-- ============================================================ -->
+    <!-- Feedback screen -->
+    <!-- ============================================================ -->
+    <string name="feedback_title">불편사항 신고</string>
+    <string name="feedback_prompt">어떤 불편한 점이 있었나요?</string>
+    <string name="feedback_placeholder">자유롭게 작성해 주세요.</string>
+    <string name="feedback_length_format">%1$d / %2$d</string>
+    <string name="feedback_send">전송하기</string>
+    <string name="feedback_failed">전송에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="feedback_done_title">소중한 의견 감사해요!</string>
+    <string name="feedback_done_subtitle">빠르게 개선하겠습니다.</string>
+
+    <!-- ============================================================ -->
+    <!-- Character screen -->
+    <!-- ============================================================ -->
+    <string name="character_title">나의 갑빠</string>
+    <string name="character_total_format">누적 %1$d회</string>
+    <string name="character_stage_label_format">%1$d단계 · %2$s</string>
+    <string name="character_next_remaining_format">다음 단계까지 %1$d개</string>
+    <string name="character_done">✅ 달성 완료</string>
+    <string name="character_locked_format">🔒 누적 %1$d개부터 해금</string>
+    <string name="character_roadmap">진화 로드맵</string>
+    <string name="character_row_stage_format">%1$d단계 · %2$s</string>
+    <string name="character_row_threshold_format">누적 %1$d회 이상</string>
+    <string name="character_cd_format">%1$d단계 캐릭터</string>
+
+    <!-- ============================================================ -->
+    <!-- Challenge screen -->
+    <!-- ============================================================ -->
+    <string name="challenge_title">챌린지</string>
+    <string name="challenge_subtitle">도전하고 보상을 받으세요 🎁</string>
+    <string name="challenge_progress_format">%1$d / %2$d</string>
+    <string name="challenge_percent_format">%1$d%%</string>
+    <string name="challenge_reward_format">🎁 보상: %1$s</string>
+
+    <string name="challenge_100_title">100개 챌린지</string>
+    <string name="challenge_100_desc">한 번에 100개에 도전!</string>
+    <string name="challenge_100_reward">골드 뱃지</string>
+    <string name="challenge_30day_title">30일 챌린지</string>
+    <string name="challenge_30day_desc">30일 연속 운동 도전</string>
+    <string name="challenge_30day_reward">다이아 뱃지</string>
+    <string name="challenge_speed_title">스피드 챌린지</string>
+    <string name="challenge_speed_desc">5분 안에 50개</string>
+    <string name="challenge_speed_reward">스피드 뱃지</string>
+
+    <!-- ============================================================ -->
+    <!-- Notification screen -->
+    <!-- ============================================================ -->
+    <string name="notif_title">알림</string>
+    <string name="notif_unread_format">새 알림 %1$d개</string>
+
+    <string name="notif_levelup_title">단계 진화!</string>
+    <string name="notif_levelup_body">3단계 보통 운동인을 달성했어요</string>
+    <string name="notif_levelup_time">방금</string>
+    <string name="notif_streak_title">12일 연속 기록</string>
+    <string name="notif_streak_body">오늘도 운동을 빠뜨리지 마세요!</string>
+    <string name="notif_streak_time">1시간 전</string>
+    <string name="notif_overtake_title">친구가 당신을 추월했어요</string>
+    <string name="notif_overtake_body">민수가 1240회로 1위에 올랐어요</string>
+    <string name="notif_overtake_time">오늘 오전 9:15</string>
+    <string name="notif_challenge_title">100개 챌린지</string>
+    <string name="notif_challenge_body">새로운 챌린지가 시작되었어요</string>
+    <string name="notif_challenge_time">어제</string>
+    <string name="notif_reminder_title">운동 알림</string>
+    <string name="notif_reminder_body">오늘의 운동 시간이에요!</string>
+    <string name="notif_reminder_time">어제</string>
+
+    <!-- ============================================================ -->
+    <!-- Tutorial / Onboarding -->
+    <!-- ============================================================ -->
+    <string name="tutorial_start">시작하기 💪</string>
+    <string name="tutorial_image_cd">갑빠왕 캐릭터 가이드</string>
+
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_start">시작하기</string>
+    <string name="onboarding_slide_1_title">푸쉬업으로 진화하세요</string>
+    <string name="onboarding_slide_1_desc">AI가 자세를 분석하고 푸쉬업을 자동으로 카운트합니다.</string>
+    <string name="onboarding_slide_2_title">9단계 캐릭터 진화</string>
+    <string name="onboarding_slide_2_desc">마른 체형부터 갑빠왕까지, 운동량에 따라 진화합니다.</string>
+    <string name="onboarding_slide_3_title">친구와 함께 도전</string>
+    <string name="onboarding_slide_3_desc">챌린지에 참여하고 친구와 기록을 공유하세요.</string>
+
+    <!-- Signup screen -->
+    <string name="signup_title">계정 만들기</string>
+    <string name="signup_subtitle">기록을 안전하게 보관하세요</string>
+    <string name="signup_kakao">카카오로 시작하기</string>
+    <string name="signup_google">Google로 시작하기</string>
+    <string name="signup_naver">네이버로 시작하기</string>
+    <string name="signup_email_show">이메일로 가입</string>
+    <string name="signup_email_hide">닫기</string>
+    <string name="signup_nickname">닉네임</string>
+    <string name="signup_email">이메일</string>
+    <string name="signup_password">비밀번호</string>
+    <string name="signup_submit">가입하기</string>
+    <string name="signup_guest">게스트로 시작하기</string>
+    <string name="guest_sheet_title">게스트 모드 안내</string>
+    <string name="guest_sheet_body">기록은 이 기기에만 저장됩니다. 앱을 삭제하거나 기기를 변경하면 데이터가 사라질 수 있어요.</string>
+
+    <!-- ============================================================ -->
+    <!-- Bottom navigation -->
+    <!-- ============================================================ -->
+    <string name="nav_home">홈</string>
+    <string name="nav_record">기록</string>
+    <string name="nav_settings">설정</string>
+
+    <!-- ============================================================ -->
+    <!-- Stage names / subtitles (indexed from 1; index 0 unused) -->
+    <!-- ============================================================ -->
+    <string-array name="stage_names">
+        <item></item>
+        <item>초보의 시작</item>
+        <item>의욕 충만</item>
+        <item>훈련생</item>
+        <item>탄탄한 기초</item>
+        <item>갑빠의 각성</item>
+        <item>강한 전사</item>
+        <item>엘리트 챔피언</item>
+        <item>왕의 위엄</item>
+        <item>전설의 경지</item>
+        <item>최강! 갑빠왕</item>
+    </string-array>
+
+    <string-array name="stage_subtitles">
+        <item></item>
+        <item>작지만 용감한 도전자!</item>
+        <item>조금씩 강해지는 중!</item>
+        <item>땀 흘리며 성장 중!</item>
+        <item>기본이 잡히는 단계!</item>
+        <item>가슴이 커지기 시작!</item>
+        <item>싸울 준비 완료!</item>
+        <item>모두가 인정하는 강자!</item>
+        <item>누구도 넘볼 수 없는 존재!</item>
+        <item>한계를 초월한 왕!</item>
+        <item>푸시업의 신! 전설의 완성!</item>
+    </string-array>
 </resources>

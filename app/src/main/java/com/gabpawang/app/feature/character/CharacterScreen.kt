@@ -16,13 +16,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.STAGE_BOUNDARIES
-import com.gabpawang.app.STAGE_NAMES
-import com.gabpawang.app.STAGE_SUBTITLES
 import com.gabpawang.app.nextThresholdFor
+import com.gabpawang.app.stageName
+import com.gabpawang.app.stageSubtitle
 import com.gabpawang.app.thresholdFor
 import com.gabpawang.app.ui.components.BackHeader
 import com.gabpawang.app.ui.components.GabpaChar
@@ -51,7 +53,11 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
                 .navigationBarsPadding()
         ) {
             StatusBarSpacer()
-            BackHeader(title = "나의 갑빠", onBack = onBack, subtitle = "누적 ${totalPushups}회")
+            BackHeader(
+                title = stringResource(R.string.character_title),
+                onBack = onBack,
+                subtitle = stringResource(R.string.character_total_format, totalPushups)
+            )
 
             Column(
                 modifier = Modifier
@@ -62,14 +68,18 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
                 GabpaChar(stage = selectedStage, sizeDp = 110.dp, glow = true)
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "${selectedStage}단계 · ${STAGE_NAMES[selectedStage]}",
+                    text = stringResource(
+                        R.string.character_stage_label_format,
+                        selectedStage,
+                        stageName(selectedStage)
+                    ),
                     color = colors.accent,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = STAGE_SUBTITLES[selectedStage],
+                    text = stageSubtitle(selectedStage),
                     color = colors.textSub,
                     fontSize = 12.sp
                 )
@@ -79,14 +89,26 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
                     selectedStage == charStage -> {
                         GabpaProgressBar(value = pct.toFloat(), max = range.toFloat(), height = 8.dp)
                         Spacer(Modifier.height(6.dp))
-                        Text("다음 단계까지 ${remaining}개", color = colors.textSub, fontSize = 12.sp)
+                        Text(
+                            stringResource(R.string.character_next_remaining_format, remaining),
+                            color = colors.textSub,
+                            fontSize = 12.sp
+                        )
                     }
                     selectedStage < charStage -> {
-                        Text("✅ 달성 완료", color = colors.accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.character_done),
+                            color = colors.accent,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     else -> {
                         Text(
-                            text = "🔒 누적 ${thresholdFor(selectedStage)}개부터 해금",
+                            text = stringResource(
+                                R.string.character_locked_format,
+                                thresholdFor(selectedStage)
+                            ),
                             color = colors.textSub,
                             fontSize = 12.sp
                         )
@@ -96,7 +118,7 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
 
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "진화 로드맵",
+                text = stringResource(R.string.character_roadmap),
                 color = colors.textPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
@@ -167,18 +189,18 @@ private fun StageRow(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "${stage}단계 · ${STAGE_NAMES[stage]}",
+                text = stringResource(R.string.character_row_stage_format, stage, stageName(stage)),
                 color = txtColor,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = STAGE_SUBTITLES[stage],
+                text = stageSubtitle(stage),
                 color = colors.textSub.copy(alpha = alpha),
                 fontSize = 10.sp
             )
             Text(
-                text = "누적 ${threshold}회 이상",
+                text = stringResource(R.string.character_row_threshold_format, threshold),
                 color = colors.textSub.copy(alpha = alpha),
                 fontSize = 11.sp
             )

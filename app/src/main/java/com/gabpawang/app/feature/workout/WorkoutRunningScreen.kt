@@ -1,7 +1,9 @@
 package com.gabpawang.app.feature.workout
 
 import android.app.Activity
+import android.media.AudioManager
 import android.media.MediaPlayer
+import android.media.ToneGenerator
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.gabpawang.app.R
 import com.gabpawang.app.MainViewModel
 import com.gabpawang.app.ads.InterstitialAdManager
@@ -35,8 +38,8 @@ import java.util.Locale
  *
  * Integrates with the existing [MainViewModel] camera + counting pipeline.
  */
-private val clockFormatter = DateTimeFormatter.ofPattern("M월 d일 (E) HH:mm:ss", Locale.KOREAN)
-private fun currentClock(): String = LocalDateTime.now().format(clockFormatter)
+private fun currentClock(formatter: DateTimeFormatter): String =
+    LocalDateTime.now().format(formatter)
 
 @Composable
 fun WorkoutRunningScreen(
@@ -49,15 +52,21 @@ fun WorkoutRunningScreen(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+    val clockPattern = stringResource(R.string.workout_clock_format)
+    val clockFormatter = remember(clockPattern) {
+        DateTimeFormatter.ofPattern(clockPattern, Locale.getDefault())
+    }
     var currentSet by remember { mutableStateOf(1) }
     var setHistory by remember { mutableStateOf<List<Int>>(emptyList()) }
     var elapsedSec by remember { mutableStateOf(0) }
     var inRest by remember { mutableStateOf(false) }
     var restRemaining by remember { mutableStateOf(0) }
     var restTotalSec by remember { mutableStateOf(60) }
-    var countdownRemaining by remember { mutableStateOf(if (config.mode == "timed") 10 else 0) }
-    var clockText by remember { mutableStateOf(currentClock()) }
+    var countdownRemaining by remember { mutableStateOf(10) }
+    var clockText by remember { mutableStateOf(currentClock(clockFormatter)) }
     val nextLevelGoal = remember(totalPushups) { nextThresholdFor(stageFor(totalPushups)) }
+    var udtCount by remember { mutableStateOf(0) }
+    var udtPhase by remember { mutableStateOf("down") }
 
     val repCount by vm.repCount
     val phase by vm.phase
@@ -120,27 +129,53 @@ fun WorkoutRunningScreen(
         else bgmPlayer.value?.start()
     }
 
-    // Reset on entry; timed mode defers calibration until countdown finishes
+    // Reset on entry; calibration defers until the pre-start countdown finishes for all modes.
     LaunchedEffect(Unit) {
         vm.reset()
-        if (config.mode != "timed") vm.startCalibration()
     }
     DisposableEffect(Unit) { onDispose { vm.reset() } }
 
-    // Pre-start countdown for timed mode, then kick off calibration
+    // Pre-start countdown for all modes; non-UDT modes start pose calibration after.
     LaunchedEffect(Unit) {
         while (countdownRemaining > 0) {
             delay(1000L)
             countdownRemaining--
         }
-        if (config.mode == "timed") vm.startCalibration()
+        if (config.mode != "udt") vm.startCalibration()
+    }
+
+    // UDT paced cycle: 1.5s down → 1.5s up = 3s per rep, with audio cues.
+    val toneGen = remember(config.mode) {
+        if (config.mode == "udt") ToneGenerator(AudioManager.STREAM_MUSIC, 80) else null
+    }
+    DisposableEffect(toneGen) { onDispose { toneGen?.release() } }
+    LaunchedEffect(config.mode) {
+        if (config.mode != "udt") return@LaunchedEffect
+        while (countdownRemaining > 0) delay(200L)
+        while (udtCount < config.udtTarget) {
+            udtPhase = "down"
+            toneGen?.startTone(ToneGenerator.TONE_CDMA_LOW_L, 200)
+            delay(1500L)
+            udtPhase = "up"
+            toneGen?.startTone(ToneGenerator.TONE_CDMA_HIGH_L, 200)
+            delay(1500L)
+            udtCount++
+        }
+        onFinish(
+            WorkoutResult(
+                sets = 1,
+                total = udtCount,
+                history = listOf(udtCount),
+                durationSec = elapsedSec
+            )
+        )
     }
 
     // Clock and workout timer (1Hz tick each)
     LaunchedEffect(Unit) {
         while (true) {
             delay(1000L)
-            clockText = currentClock()
+            clockText = currentClock(clockFormatter)
         }
     }
     LaunchedEffect(Unit) {
@@ -175,6 +210,13 @@ fun WorkoutRunningScreen(
                 else -> repCount
             }
             ttsRef.value?.speak("$spoken", TextToSpeech.QUEUE_FLUSH, null, "rep_$repCount")
+        }
+    }
+
+    // UDT mode uses its own counter and counts up (1, 2, 3, ...).
+    LaunchedEffect(udtCount) {
+        if (voiceEnabled && config.mode == "udt" && udtCount > 0) {
+            ttsRef.value?.speak("$udtCount", TextToSpeech.QUEUE_FLUSH, null, "udt_$udtCount")
         }
     }
 
@@ -253,6 +295,8 @@ fun WorkoutRunningScreen(
             clockText = clockText,
             displayTotal = totalPushups + setHistory.sum() + repCount,
             nextLevelGoal = nextLevelGoal,
+            udtCount = udtCount,
+            udtPhase = udtPhase,
             onExtendRest = {
                 restRemaining += 30
                 restTotalSec += 30
@@ -280,7 +324,10 @@ fun WorkoutRunningScreen(
                 activity?.let { InterstitialAdManager.onSetCompleted(it) }
             },
             onFinishAll = {
-                val finalHistory = if (repCount > 0) setHistory + repCount else setHistory
+                val finalHistory = when (config.mode) {
+                    "udt" -> if (udtCount > 0) listOf(udtCount) else emptyList()
+                    else -> if (repCount > 0) setHistory + repCount else setHistory
+                }
                 onFinish(
                     WorkoutResult(
                         sets = finalHistory.size,

@@ -2,15 +2,20 @@ package com.gabpawang.app
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.content.res.Configuration
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.LocaleList
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
@@ -43,6 +49,21 @@ import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.PushUpCounterTheme
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("gabpa_prefs", Context.MODE_PRIVATE)
+        val langTag = prefs.getString("app_language", null)
+        if (langTag.isNullOrBlank()) {
+            super.attachBaseContext(newBase)
+            return
+        }
+        val locale = java.util.Locale.forLanguageTag(langTag)
+        java.util.Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        config.setLocales(LocaleList(locale))
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -75,6 +96,26 @@ fun GabpaWangApp(
     val streak by appVm.streak.collectAsStateWithLifecycle()
     val isAdFree by BillingManager.isAdFree.collectAsStateWithLifecycle()
     val adPrice by BillingManager.price.collectAsStateWithLifecycle()
+    var language by remember {
+        mutableStateOf(
+            context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
+                .getString("app_language", null) ?: "ko"
+        )
+    }
+    val localizedContext = remember(language, context) {
+        val locale = java.util.Locale.forLanguageTag(language)
+        val cfg = Configuration(context.resources.configuration)
+        cfg.setLocale(locale)
+        cfg.setLocales(LocaleList(locale))
+        context.createConfigurationContext(cfg)
+    }
+    val localizedConfig = remember(language, context) {
+        Configuration(context.resources.configuration).apply {
+            val locale = java.util.Locale.forLanguageTag(language)
+            setLocale(locale)
+            setLocales(LocaleList(locale))
+        }
+    }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -111,7 +152,11 @@ fun GabpaWangApp(
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !appState.isDarkTheme
     }
 
-    CompositionLocalProvider(LocalAppColors provides appColors) {
+    CompositionLocalProvider(
+        LocalAppColors provides appColors,
+        LocalContext provides localizedContext,
+        LocalConfiguration provides localizedConfig
+    ) {
         // Permission gate is bypassed for non-camera screens.
         // We only require camera for the workout screen.
         if (appState.screen == "workout" && !hasPermission) {
@@ -129,6 +174,12 @@ fun GabpaWangApp(
             streak = streak,
             isAdFree = isAdFree,
             adPrice = adPrice,
+            currentLanguage = language,
+            onLanguageChange = { tag ->
+                context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
+                    .edit().putString("app_language", tag).apply()
+                language = tag
+            },
             context = context
         )
     }
@@ -145,6 +196,8 @@ private fun AppRouter(
     streak: Int,
     isAdFree: Boolean,
     adPrice: String,
+    currentLanguage: String,
+    onLanguageChange: (String) -> Unit,
     context: android.content.Context
 ) {
     when (appState.screen) {
@@ -230,7 +283,9 @@ private fun AppRouter(
             adRemovalPrice = adPrice,
             onRemoveAds = {
                 (context as? Activity)?.let { BillingManager.launchPurchase(it) }
-            }
+            },
+            currentLanguage = currentLanguage,
+            onLanguageChange = onLanguageChange
         )
         "feedback" -> FeedbackScreen(onBack = { appState.back() })
     }

@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.components.BackHeader
 import com.gabpawang.app.ui.components.StatusBarSpacer
 import com.gabpawang.app.ui.theme.LocalAppColors
@@ -23,18 +25,18 @@ import com.gabpawang.app.ui.theme.Yellow
 
 private data class Notif(
     val emoji: String,
-    val title: String,
-    val body: String,
-    val time: String,
+    val titleResId: Int,
+    val bodyResId: Int,
+    val timeResId: Int,
     val unread: Boolean
 )
 
 private val items = listOf(
-    Notif("⚡", "단계 진화!", "3단계 보통 운동인을 달성했어요", "방금", true),
-    Notif("🔥", "12일 연속 기록", "오늘도 운동을 빠뜨리지 마세요!", "1시간 전", true),
-    Notif("🏆", "친구가 당신을 추월했어요", "민수가 1240회로 1위에 올랐어요", "오늘 오전 9:15", false),
-    Notif("💯", "100개 챌린지", "새로운 챌린지가 시작되었어요", "어제", false),
-    Notif("📅", "운동 알림", "오늘의 운동 시간이에요!", "어제", false)
+    Notif("⚡", R.string.notif_levelup_title, R.string.notif_levelup_body, R.string.notif_levelup_time, true),
+    Notif("🔥", R.string.notif_streak_title, R.string.notif_streak_body, R.string.notif_streak_time, true),
+    Notif("🏆", R.string.notif_overtake_title, R.string.notif_overtake_body, R.string.notif_overtake_time, false),
+    Notif("💯", R.string.notif_challenge_title, R.string.notif_challenge_body, R.string.notif_challenge_time, false),
+    Notif("📅", R.string.notif_reminder_title, R.string.notif_reminder_body, R.string.notif_reminder_time, false)
 )
 
 @Composable
@@ -43,7 +45,11 @@ fun NotificationScreen(onBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
-            BackHeader(title = "알림", onBack = onBack, subtitle = "새 알림 ${items.count { it.unread }}개")
+            BackHeader(
+                title = stringResource(R.string.notif_title),
+                onBack = onBack,
+                subtitle = stringResource(R.string.notif_unread_format, items.count { it.unread })
+            )
 
             Column(
                 modifier = Modifier
@@ -80,7 +86,7 @@ private fun NotifCard(item: Notif) {
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = item.title,
+                    text = stringResource(item.titleResId),
                     color = colors.textPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -96,9 +102,13 @@ private fun NotifCard(item: Notif) {
                 }
             }
             Spacer(Modifier.height(4.dp))
-            Text(item.body, color = colors.textSub, fontSize = 12.sp)
+            Text(stringResource(item.bodyResId), color = colors.textSub, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
-            Text(item.time, color = colors.textSub.copy(alpha = 0.6f), fontSize = 10.sp)
+            Text(
+                stringResource(item.timeResId),
+                color = colors.textSub.copy(alpha = 0.6f),
+                fontSize = 10.sp
+            )
         }
     }
 }

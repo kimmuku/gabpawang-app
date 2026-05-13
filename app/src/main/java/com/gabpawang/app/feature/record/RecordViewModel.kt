@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.gabpawang.app.GabpaApplication
+import com.gabpawang.app.R
 import com.gabpawang.app.data.db.WorkoutSessionEntity
 import kotlinx.coroutines.flow.*
 import java.text.SimpleDateFormat
@@ -46,8 +47,15 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
     ): RecordUiState {
         val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val monthFmt = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-        val monthLabelFmt = SimpleDateFormat("M월", Locale.getDefault())
+        val monthLabelFmt = SimpleDateFormat(
+            getApplication<Application>().getString(R.string.calendar_md_format).let { pattern ->
+                // Use "MMM" for English locales, "M월" for Korean — fall back to short form.
+                if (pattern.contains("월")) "M월" else "MMM"
+            },
+            Locale.getDefault()
+        )
         val dayOfWeekFmt = SimpleDateFormat("E", Locale.getDefault())
+        val dashLabel = getApplication<Application>().getString(R.string.record_dash)
 
         // Sessions grouped by date
         val sessionsByDateRaw = sessions.groupBy { fmt.format(Date(it.dateMillis)) }
@@ -108,12 +116,12 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
             weeklyLabels = weeklyLabels,
             monthlyReps = monthlyReps,
             monthlyLabels = monthlyLabels,
-            maxDailyRepsDay = bestDay?.key ?: "-",
+            maxDailyRepsDay = bestDay?.key ?: dashLabel,
             maxDailyReps = bestDay?.value ?: 0,
             maxDurationSec = bestDuration?.durationSec ?: 0,
-            maxDurationDay = bestDuration?.let { fmt.format(Date(it.dateMillis)) } ?: "-",
+            maxDurationDay = bestDuration?.let { fmt.format(Date(it.dateMillis)) } ?: dashLabel,
             maxSets = bestSets?.sets ?: 0,
-            maxSetsDay = bestSets?.let { fmt.format(Date(it.dateMillis)) } ?: "-"
+            maxSetsDay = bestSets?.let { fmt.format(Date(it.dateMillis)) } ?: dashLabel
         )
     }
 }

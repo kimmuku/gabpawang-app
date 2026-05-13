@@ -11,10 +11,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.gabpawang.app.R
 import com.gabpawang.app.ads.AdBanner
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.SectionTitle
@@ -33,45 +39,108 @@ fun SettingsScreen(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     isAdFree: Boolean = false,
-    adRemovalPrice: String = "4,900원",
-    onRemoveAds: () -> Unit = {}
+    adRemovalPrice: String = stringResource(R.string.billing_fallback_price),
+    onRemoveAds: () -> Unit = {},
+    currentLanguage: String = "ko",
+    onLanguageChange: (String) -> Unit = {}
 ) {
     val colors = LocalAppColors.current
+    var showLanguageDialog by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize().background(colors.bgDark)) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
             Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-                Text("설정", color = colors.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.settings_title),
+                    color = colors.textPrimary,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                SectionTitle("운동 설정")
-                SwitchRow("음성 카운트", voiceEnabled, onVoiceChange)
-                SwitchRow("배경음악", musicEnabled, onMusicChange)
+                SectionTitle(stringResource(R.string.settings_section_workout))
+                SwitchRow(stringResource(R.string.settings_voice_count), voiceEnabled, onVoiceChange)
+                SwitchRow(stringResource(R.string.settings_background_music), musicEnabled, onMusicChange)
 
-                SectionTitle("앱 설정")
-                SwitchRow("라이트 모드", !isDarkTheme) { onThemeChange(!it) }
+                SectionTitle(stringResource(R.string.settings_section_app))
+                SwitchRow(stringResource(R.string.settings_light_mode), !isDarkTheme) { onThemeChange(!it) }
+                LanguageRow(
+                    label = stringResource(R.string.settings_language),
+                    currentName = nativeLanguageName(currentLanguage),
+                    onClick = { showLanguageDialog = true }
+                )
 
-                SectionTitle("결제")
+                SectionTitle(stringResource(R.string.settings_section_payment))
                 if (isAdFree) {
-                    InfoRow(label = "🚫 광고 제거", value = "적용됨 ✓")
+                    InfoRow(
+                        label = stringResource(R.string.settings_remove_ads_label),
+                        value = stringResource(R.string.settings_remove_ads_active)
+                    )
                 } else {
-                    ClickableRow("광고 제거 ($adRemovalPrice)", "🚫") { onRemoveAds() }
+                    ClickableRow(
+                        label = stringResource(R.string.settings_remove_ads_format, adRemovalPrice),
+                        icon = stringResource(R.string.settings_remove_ads_icon)
+                    ) { onRemoveAds() }
                 }
 
-                SectionTitle("지원")
-                ClickableRow("불편사항 신고", "📢") { onFeedback() }
+                SectionTitle(stringResource(R.string.settings_section_support))
+                ClickableRow(
+                    label = stringResource(R.string.settings_report_issue),
+                    icon = stringResource(R.string.settings_report_issue_icon)
+                ) { onFeedback() }
 
-                SectionTitle("앱 정보")
-                InfoRow(label = "버전", value = "1.0.0")
+                SectionTitle(stringResource(R.string.settings_section_about))
+                InfoRow(
+                    label = stringResource(R.string.settings_version),
+                    value = stringResource(R.string.settings_version_value)
+                )
             }
             AdBanner()
             BottomNav(active = "settings", onNav = onNav)
         }
+
+        if (showLanguageDialog) {
+            LanguagePickerDialog(
+                currentTag = currentLanguage,
+                onSelect = { tag -> onLanguageChange(tag) },
+                onDismiss = { showLanguageDialog = false }
+            )
+        }
     }
+}
+
+@Composable
+private fun LanguageRow(label: String, currentName: String, onClick: () -> Unit) {
+    val colors = LocalAppColors.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("🌐", fontSize = 16.sp)
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(label, color = colors.textPrimary, fontSize = 14.sp)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(currentName, color = colors.textSub, fontSize = 13.sp)
+            Text("›", color = colors.textSub, fontSize = 20.sp, fontWeight = FontWeight.Light)
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(0.5.dp)
+            .background(colors.bgCard)
+    )
 }
 
 @Composable

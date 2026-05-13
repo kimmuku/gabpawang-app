@@ -4,17 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.WorkoutConfig
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.theme.GreenAccent
@@ -38,6 +38,8 @@ fun RunningView(
     clockText: String = "",
     displayTotal: Int = 0,
     nextLevelGoal: Int = 0,
+    udtCount: Int = 0,
+    udtPhase: String = "down",
     onCompleteSet: () -> Unit,
     onFinishAll: () -> Unit,
     onExtendRest: () -> Unit = {},
@@ -63,7 +65,11 @@ fun RunningView(
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "누적 ${displayTotal}개  /  다음레벨 ${nextLevelGoal}개",
+                    text = stringResource(
+                        R.string.workout_accumulated_and_next_level,
+                        displayTotal,
+                        nextLevelGoal
+                    ),
                     color = Yellow,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -72,7 +78,7 @@ fun RunningView(
             if (setHistory.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     setHistory.forEachIndexed { i, n ->
-                        SetBadge(text = "${i + 1}세트 ${n}")
+                        SetBadge(text = stringResource(R.string.workout_set_history_format, i + 1, n))
                     }
                 }
             }
@@ -80,10 +86,10 @@ fun RunningView(
 
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (config.mode == "timed") {
-                    TimedModeDisplay(totalSecs = config.timedSecs, elapsedSec = elapsedSec, repCount = repCount)
-                } else {
-                    StandardModeDisplay(config = config, repCount = repCount, currentSet = currentSet)
+                when (config.mode) {
+                    "timed" -> TimedModeDisplay(totalSecs = config.timedSecs, elapsedSec = elapsedSec, repCount = repCount)
+                    "udt" -> UdtModeDisplay(target = config.udtTarget, count = udtCount, phase = udtPhase)
+                    else -> StandardModeDisplay(config = config, repCount = repCount, currentSet = currentSet)
                 }
             }
             Box(
@@ -102,104 +108,49 @@ fun RunningView(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             when (config.mode) {
-                "challenge" -> BtnPrimary(text = "포기하기", onClick = onFinishAll, color = RedAlert)
-                "timed" -> BtnPrimary(text = "중단하기", onClick = onFinishAll, color = RedAlert)
+                "challenge" -> BtnPrimary(
+                    text = stringResource(R.string.workout_give_up),
+                    onClick = onFinishAll,
+                    color = RedAlert
+                )
+                "timed" -> BtnPrimary(
+                    text = stringResource(R.string.workout_stop),
+                    onClick = onFinishAll,
+                    color = RedAlert
+                )
+                "udt" -> BtnPrimary(
+                    text = stringResource(R.string.workout_give_up),
+                    onClick = onFinishAll,
+                    color = RedAlert
+                )
                 else -> {
-                    BtnPrimary(text = "세트 완료 ✓", onClick = onCompleteSet, color = GreenAccent)
-                    BtnPrimary(text = "운동 완료", onClick = onFinishAll)
+                    BtnPrimary(
+                        text = stringResource(R.string.workout_complete_set),
+                        onClick = onCompleteSet,
+                        color = GreenAccent
+                    )
+                    BtnPrimary(
+                        text = stringResource(R.string.workout_finish_all),
+                        onClick = onFinishAll
+                    )
                 }
             }
         }
     }
 
     if (countdownRemaining > 0) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xE6080E18)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "자세를 잡아주세요",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "$countdownRemaining",
-                    color = Yellow,
-                    fontSize = 120.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 130.sp
-                )
-                Text(
-                    text = "초 후 시작",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-            }
-        }
+        CountdownOverlay(countdownRemaining = countdownRemaining)
     }
 
     if (inRest) {
-        // Intentional hardcoded dark overlay — full-screen cover during rest period over camera feed
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF080E18)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .navigationBarsPadding()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "휴식 시간",
-                    color = colors.textPrimary,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Box(
-                    modifier = Modifier.size(220.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val progress = if (restTotalSec > 0) restRemaining.toFloat() / restTotalSec else 0f
-                    CircularProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.fillMaxSize(),
-                        strokeWidth = 14.dp,
-                        color = colors.accent,
-                        trackColor = colors.bgCard,
-                        strokeCap = StrokeCap.Round
-                    )
-                    Text(
-                        text = "${restRemaining}",
-                        color = colors.accent,
-                        fontSize = 78.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        lineHeight = 84.sp
-                    )
-                }
-                Spacer(modifier = Modifier.height(14.dp))
-                Text("초 후 다음 세트", color = Color.White, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(28.dp))
-                BtnPrimary(text = "바로시작 ▶", onClick = onSkipRest, color = GreenAccent)
-                Spacer(modifier = Modifier.height(10.dp))
-                BtnPrimary(text = "휴식 30초 연장", onClick = onExtendRest, color = Color.White)
-                Spacer(modifier = Modifier.height(10.dp))
-                BtnPrimary(text = "저장하고 홈으로", onClick = onFinishAll, color = RedAlert)
-            }
-        }
+        RestOverlay(
+            colors = colors,
+            restRemaining = restRemaining,
+            restTotalSec = restTotalSec,
+            onSkipRest = onSkipRest,
+            onExtendRest = onExtendRest,
+            onFinishAll = onFinishAll
+        )
     }
 }
 
@@ -212,9 +163,9 @@ private fun TimedModeDisplay(totalSecs: Int, elapsedSec: Int, repCount: Int) {
     val timerColor = if (remaining <= 30) RedAlert else colors.accent
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("남은 시간", color = colors.textSub, fontSize = 14.sp)
+        Text(stringResource(R.string.workout_remaining_time), color = colors.textSub, fontSize = 14.sp)
         Text(
-            text = "%d:%02d".format(mins, secs),
+            text = stringResource(R.string.workout_time_format, mins, secs),
             color = timerColor,
             fontSize = 80.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -228,7 +179,7 @@ private fun TimedModeDisplay(totalSecs: Int, elapsedSec: Int, repCount: Int) {
             fontWeight = FontWeight.Bold,
             lineHeight = 56.sp
         )
-        Text("개 완료", color = colors.textSub, fontSize = 15.sp)
+        Text(stringResource(R.string.workout_completed_count), color = colors.textSub, fontSize = 15.sp)
     }
 }
 
@@ -245,9 +196,9 @@ private fun StandardModeDisplay(config: WorkoutConfig, repCount: Int, currentSet
             else -> repCount.toString()
         }
         val label = when (config.mode) {
-            "target" -> "${currentSet}세트 남은 횟수"
-            "challenge" -> "100개 챌린지"
-            else -> "${currentSet}세트"
+            "target" -> stringResource(R.string.workout_set_remaining_count_format, currentSet)
+            "challenge" -> stringResource(R.string.workout_challenge_100)
+            else -> stringResource(R.string.workout_set_label_format, currentSet)
         }
         Text(label, color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         Text(
@@ -257,18 +208,63 @@ private fun StandardModeDisplay(config: WorkoutConfig, repCount: Int, currentSet
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 120.sp
         )
-        Text("개", color = colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(
+            stringResource(R.string.common_count_unit),
+            color = colors.textPrimary,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun UdtModeDisplay(target: Int, count: Int, phase: String) {
+    val colors = LocalAppColors.current
+    val phaseLabel = if (phase == "up") stringResource(R.string.udt_phase_up)
+                     else stringResource(R.string.udt_phase_down)
+    val phaseColor = if (phase == "up") GreenAccent else colors.accent
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = phaseLabel,
+            color = phaseColor,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
+        Text(
+            text = "$count",
+            color = colors.accent,
+            fontSize = 110.sp,
+            fontWeight = FontWeight.ExtraBold,
+            lineHeight = 120.sp
+        )
+        Text(
+            text = "/ $target",
+            color = colors.textSub,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
 /** Status pill showing whether the counting algorithm is calibrated and ready. */
 @Composable
 private fun CountingStatusBadge(phase: String) {
-    val ready = phase == "UP ↑" || phase == "DOWN ↓"
+    val upLabel = stringResource(R.string.phase_up)
+    val downLabel = stringResource(R.string.phase_down)
+    val readyPhase = stringResource(R.string.phase_ready)
+    val ready = phase == upLabel || phase == downLabel
     val accentColor = if (ready) GreenAccent else Color(0xFFFF9500)
     val bgColor = if (ready) Color(0xFF0D2B0D) else Color(0xFF2B1900)
-    val label = if (ready) "카운팅 준비 완료" else "카운팅 준비 대기"
-    val sub = if (!ready && phase != "준비") "  ·  $phase" else ""
+    val label = if (ready) {
+        stringResource(R.string.workout_counting_ready)
+    } else {
+        stringResource(R.string.workout_counting_waiting)
+    }
+    val text = if (!ready && phase != readyPhase) {
+        stringResource(R.string.workout_counting_with_phase_format, label, phase)
+    } else {
+        label
+    }
 
     Row(
         modifier = Modifier
@@ -290,7 +286,7 @@ private fun CountingStatusBadge(phase: String) {
                 .background(accentColor)
         )
         Text(
-            text = "$label$sub",
+            text = text,
             color = accentColor,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold

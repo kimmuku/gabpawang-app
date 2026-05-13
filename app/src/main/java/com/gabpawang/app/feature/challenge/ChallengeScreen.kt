@@ -11,29 +11,49 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.GabpaProgressBar
 import com.gabpawang.app.ui.components.StatusBarSpacer
 import com.gabpawang.app.ui.theme.LocalAppColors
-import com.gabpawang.app.ui.theme.Yellow
 
+/** Per-challenge metadata — title/desc/reward are resource IDs to support i18n. */
 private data class ChallengeItem(
     val emoji: String,
-    val title: String,
-    val desc: String,
+    val titleResId: Int,
+    val descResId: Int,
     val progress: Float,
     val current: Int,
     val total: Int,
-    val reward: String
+    val rewardResId: Int
 )
 
 private val challenges = listOf(
-    ChallengeItem("💯", "100개 챌린지", "한 번에 100개에 도전!", 0f, 0, 100, "골드 뱃지"),
-    ChallengeItem("📅", "30일 챌린지", "30일 연속 운동 도전", 0.4f, 12, 30, "다이아 뱃지"),
-    ChallengeItem("⚡", "스피드 챌린지", "5분 안에 50개", 0.6f, 30, 50, "스피드 뱃지")
+    ChallengeItem(
+        "💯",
+        R.string.challenge_100_title,
+        R.string.challenge_100_desc,
+        0f, 0, 100,
+        R.string.challenge_100_reward
+    ),
+    ChallengeItem(
+        "📅",
+        R.string.challenge_30day_title,
+        R.string.challenge_30day_desc,
+        0.4f, 12, 30,
+        R.string.challenge_30day_reward
+    ),
+    ChallengeItem(
+        "⚡",
+        R.string.challenge_speed_title,
+        R.string.challenge_speed_desc,
+        0.6f, 30, 50,
+        R.string.challenge_speed_reward
+    )
 )
 
 @Composable
@@ -43,9 +63,18 @@ fun ChallengeScreen(onNav: (String) -> Unit) {
         Column(modifier = Modifier.fillMaxSize()) {
             StatusBarSpacer()
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-                Text("챌린지", color = colors.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.challenge_title),
+                    color = colors.textPrimary,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(Modifier.height(4.dp))
-                Text("도전하고 보상을 받으세요 🎁", color = colors.textSub, fontSize = 13.sp)
+                Text(
+                    stringResource(R.string.challenge_subtitle),
+                    color = colors.textSub,
+                    fontSize = 13.sp
+                )
             }
             Column(
                 modifier = Modifier
@@ -80,8 +109,13 @@ private fun ChallengeCard(c: ChallengeItem) {
             Text(c.emoji, fontSize = 32.sp)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(c.title, color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(c.desc, color = colors.textSub, fontSize = 12.sp)
+                Text(
+                    stringResource(c.titleResId),
+                    color = colors.textPrimary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(stringResource(c.descResId), color = colors.textSub, fontSize = 12.sp)
             }
         }
         if (c.progress > 0f) {
@@ -90,13 +124,25 @@ private fun ChallengeCard(c: ChallengeItem) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("${c.current} / ${c.total}", color = colors.textPrimary, fontSize = 12.sp)
-                Text("${(c.progress * 100).toInt()}%", color = colors.accent, fontSize = 12.sp)
+                Text(
+                    stringResource(R.string.challenge_progress_format, c.current, c.total),
+                    color = colors.textPrimary,
+                    fontSize = 12.sp
+                )
+                Text(
+                    stringResource(R.string.challenge_percent_format, (c.progress * 100).toInt()),
+                    color = colors.accent,
+                    fontSize = 12.sp
+                )
             }
             Spacer(Modifier.height(6.dp))
             GabpaProgressBar(value = c.progress, max = 1f, height = 6.dp)
         }
         Spacer(Modifier.height(10.dp))
-        Text(text = "🎁 보상: ${c.reward}", color = colors.accent, fontSize = 11.sp)
+        Text(
+            text = stringResource(R.string.challenge_reward_format, stringResource(c.rewardResId)),
+            color = colors.accent,
+            fontSize = 11.sp
+        )
     }
 }

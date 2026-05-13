@@ -15,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.STAGE_BOUNDARIES
-import com.gabpawang.app.STAGE_NAMES
-import com.gabpawang.app.STAGE_SUBTITLES
+import com.gabpawang.app.stageName
+import com.gabpawang.app.stageSubtitle
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
 import com.gabpawang.app.ui.theme.LocalAppColors
@@ -46,7 +48,12 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("⚡ 단계 진화!", color = colors.accent, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.levelup_header),
+                color = colors.accent,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(20.dp))
 
             val transition = rememberInfiniteTransition(label = "lvl")
@@ -65,24 +72,29 @@ fun LevelUpScreen(newStage: Int, onNext: () -> Unit) {
 
             Spacer(modifier = Modifier.height(28.dp))
             Text(
-                text = "${newStage}단계 달성!",
+                text = stringResource(R.string.levelup_stage_format, newStage),
                 color = colors.textPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold
             )
             Spacer(modifier = Modifier.height(6.dp))
-            Text(STAGE_NAMES[newStage], color = colors.accent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stageName(newStage),
+                color = colors.accent,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(6.dp))
-            Text(STAGE_SUBTITLES[newStage], color = colors.textSub, fontSize = 13.sp)
+            Text(stageSubtitle(newStage), color = colors.textSub, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(14.dp))
             Text(
-                text = "누적 ${threshold}개 돌파를 축하해요!",
+                text = stringResource(R.string.levelup_threshold_format, threshold),
                 color = colors.textSub,
                 fontSize = 13.sp
             )
 
             Spacer(modifier = Modifier.height(40.dp))
-            BtnPrimary(text = "계속 성장하기 🚀", onClick = onNext)
+            BtnPrimary(text = stringResource(R.string.levelup_continue), onClick = onNext)
         }
     }
 }

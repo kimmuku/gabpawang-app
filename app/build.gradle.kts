@@ -96,6 +96,7 @@ dependencies {
     implementation(libs.kakao.user)
     implementation(libs.play.services.ads)
     implementation(libs.billing.ktx)
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

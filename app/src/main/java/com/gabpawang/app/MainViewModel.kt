@@ -27,8 +27,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     var repCount = mutableIntStateOf(0)
         private set
-    var phase = mutableStateOf("준비")
+    var phase = mutableStateOf(getApplication<Application>().getString(R.string.phase_ready))
         private set
+    private val readyLabel: String get() = getApplication<Application>().getString(R.string.phase_ready)
     var isRunning = mutableStateOf(false)
         private set
     var isCalibrating = mutableStateOf(false)
@@ -88,7 +89,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _helper = helper
                 modelState.value = ModelState.Ready
             } catch (e: Exception) {
-                modelState.value = ModelState.Error(e.message ?: "모델 로드 실패")
+                modelState.value = ModelState.Error(
+                    e.message ?: getApplication<Application>().getString(R.string.error_model_load_failed)
+                )
             }
         }
     }
@@ -123,7 +126,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         counter.reset()
         isRunning.value = false
         isCalibrating.value = false
-        phase.value = "준비"
+        phase.value = readyLabel
         repCount.intValue = 0
         calibrationProgress.floatValue = 0f
         poseDetected.value = false
@@ -212,12 +215,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         debugDownThreshold.floatValue = counter.downThresholdValue()
         debugUpThreshold.floatValue = counter.upThresholdValue()
 
+        val app = getApplication<Application>()
         phase.value = when (counter.state) {
             PushUpState.WARMING ->
-                "준비 중... ${(counter.warmupProgress() * 100).toInt()}%"
-            PushUpState.UP -> "UP ↑"
-            PushUpState.DOWN -> "DOWN ↓"
-            PushUpState.IDLE -> "준비"
+                app.getString(R.string.phase_warming_format, (counter.warmupProgress() * 100).toInt())
+            PushUpState.UP -> app.getString(R.string.phase_up)
+            PushUpState.DOWN -> app.getString(R.string.phase_down)
+            PushUpState.IDLE -> app.getString(R.string.phase_ready)
         }
     }
 

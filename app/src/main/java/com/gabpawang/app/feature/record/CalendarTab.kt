@@ -13,10 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Orange
 import com.gabpawang.app.ui.theme.Yellow
@@ -41,8 +43,9 @@ fun CalendarTab(uiState: RecordUiState) {
     }
     val firstDayOfWeek = firstDayCal.get(Calendar.DAY_OF_WEEK) - 1 // 0=Sun, 1=Mon,...
 
-    val monthLabel = remember {
-        SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(cal.time)
+    val monthFmtPattern = stringResource(R.string.calendar_month_format)
+    val monthLabel = remember(monthFmtPattern) {
+        SimpleDateFormat(monthFmtPattern, Locale.getDefault()).format(cal.time)
     }
     val fmt = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
@@ -112,13 +115,13 @@ fun CalendarTab(uiState: RecordUiState) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "${month + 1}월 ${selected}일",
+                text = stringResource(R.string.calendar_day_format, month + 1, selected),
                 color = colors.textPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             if (selectedSessions.isEmpty()) {
-                Text("운동 기록 없음", color = colors.textSub, fontSize = 12.sp)
+                Text(stringResource(R.string.record_no_workout), color = colors.textSub, fontSize = 12.sp)
             } else {
                 SessionsTable(sessions = selectedSessions)
                 val dayTotal = selectedSessions.sumOf { it.totalReps }
@@ -127,9 +130,9 @@ fun CalendarTab(uiState: RecordUiState) {
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("하루 합계  ", color = colors.textSub, fontSize = 12.sp)
+                    Text(stringResource(R.string.record_day_total), color = colors.textSub, fontSize = 12.sp)
                     Text(
-                        text = "${dayTotal}회",
+                        text = stringResource(R.string.record_day_total_value_format, dayTotal),
                         color = colors.accent,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.ExtraBold
@@ -157,12 +160,16 @@ private fun StreakCard(streak: Int) {
         Spacer(Modifier.width(12.dp))
         Column {
             Text(
-                text = if (streak > 0) "${streak}일 연속 운동 중!" else "오늘 운동을 시작해요!",
+                text = if (streak > 0) {
+                    stringResource(R.string.record_streak_active_format, streak)
+                } else {
+                    stringResource(R.string.record_streak_inactive)
+                },
                 color = colors.textPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
-            Text("계속 이어가세요", color = colors.textSub, fontSize = 12.sp)
+            Text(stringResource(R.string.record_streak_keep_going), color = colors.textSub, fontSize = 12.sp)
         }
     }
 }
@@ -183,7 +190,7 @@ private fun SessionsTable(sessions: List<WorkoutSessionEntity>) {
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, colors.borderCard, RoundedCornerShape(8.dp))
     ) {
-        // Header: [운동(multi only)] | 1세트 | 2세트 | ... | 합계
+        // Header: [workout label (multi only)] | Set 1 | Set 2 | ... | Total
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -194,13 +201,13 @@ private fun SessionsTable(sessions: List<WorkoutSessionEntity>) {
             if (!isSingle) Spacer(modifier = Modifier.weight(1.2f))
             for (setIdx in 0 until maxSets) {
                 Text(
-                    text = "${setIdx + 1}세트",
+                    text = stringResource(R.string.record_set_col_format, setIdx + 1),
                     color = colors.textSub, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f), textAlign = TextAlign.Center
                 )
             }
             Text(
-                text = "합계",
+                text = stringResource(R.string.record_total_col),
                 color = colors.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f), textAlign = TextAlign.Center
             )
@@ -218,7 +225,7 @@ private fun SessionsTable(sessions: List<WorkoutSessionEntity>) {
             ) {
                 if (!isSingle) {
                     Text(
-                        text = "운동 ${idx + 1}",
+                        text = stringResource(R.string.record_session_index_format, idx + 1),
                         color = colors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1.2f)
                     )
@@ -226,7 +233,11 @@ private fun SessionsTable(sessions: List<WorkoutSessionEntity>) {
                 for (setIdx in 0 until maxSets) {
                     val reps = counts.getOrNull(setIdx)
                     Text(
-                        text = if (reps != null) "${reps}회" else "-",
+                        text = if (reps != null) {
+                            stringResource(R.string.record_reps_format, reps)
+                        } else {
+                            stringResource(R.string.record_dash)
+                        },
                         color = if (reps != null) colors.textPrimary else colors.textSub,
                         fontSize = 13.sp,
                         fontWeight = if (reps != null) FontWeight.Bold else FontWeight.Normal,
@@ -234,7 +245,7 @@ private fun SessionsTable(sessions: List<WorkoutSessionEntity>) {
                     )
                 }
                 Text(
-                    text = "${s.totalReps}회",
+                    text = stringResource(R.string.record_reps_format, s.totalReps),
                     color = colors.accent, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f), textAlign = TextAlign.Center
                 )
@@ -270,7 +281,7 @@ private fun DayCell(
     ) {
         Text(text = "$day", color = colors.textSub, fontSize = 9.sp)
         Text(
-            text = if (count > 0) "$count" else "-",
+            text = if (count > 0) "$count" else stringResource(R.string.record_dash),
             color = if (count > 0) Color.Black else colors.textSub,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,

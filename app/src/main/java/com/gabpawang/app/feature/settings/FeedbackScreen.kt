@@ -9,10 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gabpawang.app.BuildConfig
+import com.gabpawang.app.R
 import com.gabpawang.app.data.remote.FeedbackRepository
 import com.gabpawang.app.ui.components.StatusBarSpacer
 import com.gabpawang.app.ui.theme.LocalAppColors
@@ -26,6 +28,7 @@ private const val MAX_LEN = 500
 fun FeedbackScreen(onBack: () -> Unit) {
     val colors = LocalAppColors.current
     val scope = rememberCoroutineScope()
+    val failureMessage = stringResource(R.string.feedback_failed)
 
     var text by remember { mutableStateOf("") }
     var submitting by remember { mutableStateOf(false) }
@@ -48,7 +51,12 @@ fun FeedbackScreen(onBack: () -> Unit) {
                     modifier = Modifier.clickable { onBack() }
                 )
                 Spacer(Modifier.width(12.dp))
-                Text("불편사항 신고", color = colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.feedback_title),
+                    color = colors.textPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             if (done) {
@@ -70,7 +78,7 @@ fun FeedbackScreen(onBack: () -> Unit) {
                             )
                             submitting = false
                             if (result.isSuccess) done = true
-                            else errorMsg = "전송에 실패했어요. 잠시 후 다시 시도해 주세요."
+                            else errorMsg = failureMessage
                         }
                     }
                 )
@@ -89,16 +97,25 @@ private fun DoneContent(onBack: () -> Unit) {
         ) {
             Text("✅", fontSize = 56.sp)
             Spacer(Modifier.height(16.dp))
-            Text("소중한 의견 감사해요!", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Yellow)
+            Text(
+                stringResource(R.string.feedback_done_title),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Yellow
+            )
             Spacer(Modifier.height(8.dp))
-            Text("빠르게 개선하겠습니다.", fontSize = 14.sp, color = colors.textSub)
+            Text(
+                stringResource(R.string.feedback_done_subtitle),
+                fontSize = 14.sp,
+                color = colors.textSub
+            )
             Spacer(Modifier.height(32.dp))
             Button(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Yellow, contentColor = Color.Black)
-            ) { Text("확인", fontWeight = FontWeight.Bold) }
+            ) { Text(stringResource(R.string.common_confirm), fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -118,7 +135,7 @@ private fun InputContent(
             .padding(horizontal = 20.dp)
     ) {
         Spacer(Modifier.height(8.dp))
-        Text("어떤 불편한 점이 있었나요?", color = colors.textSub, fontSize = 13.sp)
+        Text(stringResource(R.string.feedback_prompt), color = colors.textSub, fontSize = 13.sp)
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = text,
@@ -126,7 +143,13 @@ private fun InputContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp),
-            placeholder = { Text("자유롭게 작성해 주세요.", color = colors.textSub, fontSize = 14.sp) },
+            placeholder = {
+                Text(
+                    stringResource(R.string.feedback_placeholder),
+                    color = colors.textSub,
+                    fontSize = 14.sp
+                )
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Yellow,
                 unfocusedBorderColor = colors.bgCard,
@@ -137,7 +160,11 @@ private fun InputContent(
             maxLines = 10
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Text("${text.length} / $MAX_LEN", color = colors.textSub, fontSize = 11.sp)
+            Text(
+                stringResource(R.string.feedback_length_format, text.length, MAX_LEN),
+                color = colors.textSub,
+                fontSize = 11.sp
+            )
         }
         errorMsg?.let {
             Spacer(Modifier.height(8.dp))
@@ -156,7 +183,7 @@ private fun InputContent(
             if (submitting) {
                 CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
             } else {
-                Text("전송하기", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.feedback_send), fontWeight = FontWeight.Bold)
             }
         }
         Spacer(Modifier.height(24.dp))

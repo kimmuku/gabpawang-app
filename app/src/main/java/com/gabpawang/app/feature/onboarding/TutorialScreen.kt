@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
@@ -32,7 +33,7 @@ fun TutorialScreen(onStart: () -> Unit) {
 
             Image(
                 painter = painterResource(R.drawable.pushup_guide),
-                contentDescription = "갑빠왕 캐릭터 가이드",
+                contentDescription = stringResource(R.string.tutorial_image_cd),
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.FillWidth
             )
@@ -45,7 +46,7 @@ fun TutorialScreen(onStart: () -> Unit) {
                     .padding(horizontal = 20.dp)
                     .navigationBarsPadding()
             ) {
-                BtnPrimary(text = "시작하기 💪", onClick = onStart)
+                BtnPrimary(text = stringResource(R.string.tutorial_start), onClick = onStart)
             }
 
             Spacer(modifier = Modifier.height(32.dp))

@@ -16,11 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gabpawang.app.STAGE_NAMES
+import com.gabpawang.app.R
 import com.gabpawang.app.WorkoutResult
 import com.gabpawang.app.nextThresholdFor
 import com.gabpawang.app.stageFor
@@ -28,11 +29,8 @@ import com.gabpawang.app.thresholdFor
 import androidx.compose.ui.graphics.Color
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.components.GabpaChar
-import com.gabpawang.app.ui.components.GabpaProgressBar
 import com.gabpawang.app.ui.components.StatusBarSpacer
 import com.gabpawang.app.ui.theme.LocalAppColors
-import com.gabpawang.app.ui.theme.Orange
-import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
 fun WorkoutResultScreen(
@@ -65,9 +63,14 @@ fun WorkoutResultScreen(
         ) {
             StatusBarSpacer()
             Spacer(modifier = Modifier.height(16.dp))
-            Text("운동 완료! 🎉", color = colors.textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.result_title),
+                color = colors.textPrimary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("오늘의 기록을 확인하세요", color = colors.textSub, fontSize = 13.sp)
+            Text(stringResource(R.string.result_subtitle), color = colors.textSub, fontSize = 13.sp)
 
             Spacer(modifier = Modifier.height(24.dp))
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -81,7 +84,7 @@ fun WorkoutResultScreen(
                         fontWeight = FontWeight.ExtraBold
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("개", color = colors.textSub, fontSize = 18.sp)
+                    Text(stringResource(R.string.common_count_unit), color = colors.textSub, fontSize = 18.sp)
                 }
             }
 
@@ -90,13 +93,13 @@ fun WorkoutResultScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                SummaryCard("${result.sets}", "세트", Modifier.weight(1f))
+                SummaryCard("${result.sets}", stringResource(R.string.result_label_sets), Modifier.weight(1f))
                 SummaryCard(
                     "${durMin}:${durSec.toString().padStart(2, '0')}",
-                    "운동시간",
+                    stringResource(R.string.result_label_duration),
                     Modifier.weight(1f)
                 )
-                SummaryCard("$adjustedTotal", "총 횟수", Modifier.weight(1f))
+                SummaryCard("$adjustedTotal", stringResource(R.string.result_label_total), Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -105,10 +108,15 @@ fun WorkoutResultScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("세트별 기록", color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.result_section_per_set),
+                    color = colors.textPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 if (adjustedTotal != result.total) {
                     Text(
-                        text = "AI 측정: ${result.total}개",
+                        text = stringResource(R.string.result_ai_measured_format, result.total),
                         color = colors.textSub.copy(alpha = 0.5f),
                         fontSize = 11.sp
                     )
@@ -140,14 +148,20 @@ fun WorkoutResultScreen(
                 progressIntoStage = progressIntoStage,
                 stageRange = stageRange,
                 gained = adjustedTotal,
-                remaining = remaining,
-                nextThreshold = nextThreshold
+                remaining = remaining
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            BtnPrimary(text = "기록 저장하기", onClick = { onSave(adjustedTotal, adjustedHistory) })
+            BtnPrimary(
+                text = stringResource(R.string.result_save_button),
+                onClick = { onSave(adjustedTotal, adjustedHistory) }
+            )
             Spacer(modifier = Modifier.height(10.dp))
-            BtnPrimary(text = "홈으로 돌아가기", onClick = onHome, color = Color(0xFFCCCCCC))
+            BtnPrimary(
+                text = stringResource(R.string.result_home_button),
+                onClick = onHome,
+                color = Color(0xFFCCCCCC)
+            )
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
@@ -183,11 +197,15 @@ private fun SetRow(idx: Int, count: Int, onMinus: () -> Unit, onPlus: () -> Unit
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("${idx}세트", color = colors.textSub, fontSize = 13.sp)
+        Text(
+            stringResource(R.string.result_set_index_format, idx),
+            color = colors.textSub,
+            fontSize = 13.sp
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             AdjustBtn("−", enabled = count > 0, onClick = onMinus)
             Text(
-                text = "${count}개",
+                text = stringResource(R.string.result_set_count_format, count),
                 color = colors.textPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
@@ -195,59 +213,6 @@ private fun SetRow(idx: Int, count: Int, onMinus: () -> Unit, onPlus: () -> Unit
                 textAlign = TextAlign.Center
             )
             AdjustBtn("+", onClick = onPlus)
-        }
-    }
-}
-
-@Composable
-private fun EvolutionCard(
-    stage: Int,
-    progressIntoStage: Int,
-    stageRange: Int,
-    gained: Int,
-    remaining: Int,
-    nextThreshold: Int
-) {
-    val colors = LocalAppColors.current
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.bgCard)
-            .border(1.dp, colors.borderCard, RoundedCornerShape(16.dp))
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("진화 진행도", color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Text("+${gained}개", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        GabpaProgressBar(
-            value = progressIntoStage.toFloat(),
-            max = stageRange.toFloat(),
-            extra = gained.toFloat(),
-            height = 10.dp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "${stage}단계 · ${STAGE_NAMES[stage]}",
-                color = colors.textSub,
-                fontSize = 12.sp
-            )
-            Text(
-                text = "다음까지 ${remaining}개",
-                color = colors.accent,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
         }
     }
 }

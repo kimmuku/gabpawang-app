@@ -22,10 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Orange
 import com.gabpawang.app.ui.theme.Yellow
@@ -199,12 +201,12 @@ fun StatCard(
     }
 }
 
-private data class NavItem(val id: String, val label: String, val icon: ImageVector)
+private data class NavItem(val id: String, val labelResId: Int, val icon: ImageVector)
 
 private val navItems = listOf(
-    NavItem("home", "홈", Icons.Outlined.Home),
-    NavItem("record", "기록", Icons.Outlined.BarChart),
-    NavItem("settings", "설정", Icons.Outlined.Settings)
+    NavItem("home", R.string.nav_home, Icons.Outlined.Home),
+    NavItem("record", R.string.nav_record, Icons.Outlined.BarChart),
+    NavItem("settings", R.string.nav_settings, Icons.Outlined.Settings)
 )
 
 @Composable
@@ -222,6 +224,7 @@ fun BottomNav(active: String, onNav: (String) -> Unit) {
     ) {
         for (item in navItems) {
             val tint = if (item.id == active) colors.accent else colors.textSub
+            val label = stringResource(item.labelResId)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -231,12 +234,12 @@ fun BottomNav(active: String, onNav: (String) -> Unit) {
             ) {
                 Icon(
                     imageVector = item.icon,
-                    contentDescription = item.label,
+                    contentDescription = label,
                     tint = tint,
                     modifier = Modifier.size(22.dp)
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(text = item.label, color = tint, fontSize = 10.sp)
+                Text(text = label, color = tint, fontSize = 10.sp)
             }
         }
     }

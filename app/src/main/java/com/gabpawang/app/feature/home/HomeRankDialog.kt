@@ -11,32 +11,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.components.BtnPrimary
 import com.gabpawang.app.ui.theme.LocalAppColors
 
-private val rankTable = listOf(
-    100 to "상위 약 0.2%",
-    90 to "상위 약 0.3%",
-    80 to "상위 약 0.5%",
-    75 to "상위 약 0.8%",
-    70 to "상위 약 1%",
-    65 to "상위 약 1.5%",
-    60 to "상위 약 2.5%",
-    55 to "상위 약 4.5%",
-    50 to "상위 약 7%",
-    45 to "상위 약 10%",
-    40 to "상위 약 14%",
-    35 to "상위 약 22%",
-    30 to "상위 약 32%",
-    25 to "상위 약 45%",
-    20 to "상위 약 57%",
-    15 to "상위 약 70%",
-    10 to "상위 약 85%",
-    5 to "상위 약 92%"
+/** Threshold → rank-text resId pairs, ordered from highest to lowest threshold. */
+private val rankTable: List<Pair<Int, Int>> = listOf(
+    100 to R.string.rank_top_0_2,
+    90 to R.string.rank_top_0_3,
+    80 to R.string.rank_top_0_5,
+    75 to R.string.rank_top_0_8,
+    70 to R.string.rank_top_1,
+    65 to R.string.rank_top_1_5,
+    60 to R.string.rank_top_2_5,
+    55 to R.string.rank_top_4_5,
+    50 to R.string.rank_top_7,
+    45 to R.string.rank_top_10,
+    40 to R.string.rank_top_14,
+    35 to R.string.rank_top_22,
+    30 to R.string.rank_top_32,
+    25 to R.string.rank_top_45,
+    20 to R.string.rank_top_57,
+    15 to R.string.rank_top_70,
+    10 to R.string.rank_top_85,
+    5 to R.string.rank_top_92
 )
 
 @Composable
@@ -53,13 +56,34 @@ fun RankBreakdownDialog(currentMax: Int, onDismiss: () -> Unit) {
                 .background(colors.bgDark)
         ) {
             Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp)) {
-                Text("🏆 전국 성인남자 푸시업 기록", color = colors.textPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.rank_dialog_title),
+                    color = colors.textPrimary,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("한국 성인남자 1회 최대 푸시업 횟수 분포 추정치", color = colors.textSub, fontSize = 11.sp)
+                Text(
+                    stringResource(R.string.rank_dialog_subtitle),
+                    color = colors.textSub,
+                    fontSize = 11.sp
+                )
                 Spacer(modifier = Modifier.height(14.dp))
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Text("1회 최고 기록", modifier = Modifier.weight(1f), color = colors.textSub, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("전국 순위", modifier = Modifier.weight(1f), color = colors.textSub, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.rank_dialog_col_record),
+                        modifier = Modifier.weight(1f),
+                        color = colors.textSub,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        stringResource(R.string.rank_dialog_col_rank),
+                        modifier = Modifier.weight(1f),
+                        color = colors.textSub,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.borderCard))
             }
@@ -70,7 +94,7 @@ fun RankBreakdownDialog(currentMax: Int, onDismiss: () -> Unit) {
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp)
             ) {
-                rankTable.forEach { (threshold, label) ->
+                rankTable.forEach { (threshold, labelResId) ->
                     val isCurrent = threshold == matchedThreshold
                     Row(
                         modifier = Modifier
@@ -80,14 +104,14 @@ fun RankBreakdownDialog(currentMax: Int, onDismiss: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${threshold}개 이상",
+                            text = stringResource(R.string.rank_dialog_row_format, threshold),
                             modifier = Modifier.weight(1f),
                             color = if (isCurrent) colors.accent else colors.textPrimary,
                             fontSize = 13.sp,
                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal
                         )
                         Text(
-                            text = label,
+                            text = stringResource(labelResId),
                             modifier = Modifier.weight(1f),
                             color = if (isCurrent) colors.accent else colors.textPrimary,
                             fontSize = 13.sp,
@@ -98,9 +122,13 @@ fun RankBreakdownDialog(currentMax: Int, onDismiss: () -> Unit) {
             }
 
             Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)) {
-                Text("* 공식 통계가 아닌 참고용 추정치입니다.", color = colors.textSub, fontSize = 10.sp)
+                Text(
+                    stringResource(R.string.rank_dialog_disclaimer),
+                    color = colors.textSub,
+                    fontSize = 10.sp
+                )
                 Spacer(modifier = Modifier.height(14.dp))
-                BtnPrimary(text = "닫기", onClick = onDismiss)
+                BtnPrimary(text = stringResource(R.string.common_close), onClick = onDismiss)
             }
         }
     }

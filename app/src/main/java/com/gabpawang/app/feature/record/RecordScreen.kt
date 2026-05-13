@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gabpawang.app.R
 import com.gabpawang.app.ads.AdBanner
 import com.gabpawang.app.ui.components.BottomNav
 import com.gabpawang.app.ui.components.StatusBarSpacer
@@ -28,7 +30,7 @@ fun RecordScreen(
             StatusBarSpacer()
             Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Text(
-                    text = "기록",
+                    text = stringResource(R.string.record_title),
                     color = colors.textPrimary,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold

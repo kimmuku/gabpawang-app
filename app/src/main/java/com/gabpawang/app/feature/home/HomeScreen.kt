@@ -21,15 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.gabpawang.app.STAGE_NAMES
+import com.gabpawang.app.R
 import com.gabpawang.app.ads.AdBanner
 import com.gabpawang.app.nationalRankText
 import com.gabpawang.app.nextThresholdFor
+import com.gabpawang.app.stageName
 import com.gabpawang.app.thresholdFor
 import com.gabpawang.app.feature.record.RecordViewModel
 import com.gabpawang.app.ui.components.BottomNav
@@ -38,7 +41,6 @@ import com.gabpawang.app.ui.components.GabpaChar
 import com.gabpawang.app.ui.components.GabpaProgressBar
 import com.gabpawang.app.ui.components.StatusBarSpacer
 import com.gabpawang.app.ui.theme.LocalAppColors
-import com.gabpawang.app.ui.theme.Yellow
 
 @Composable
 fun HomeScreen(
@@ -52,6 +54,7 @@ fun HomeScreen(
     recordVm: RecordViewModel = viewModel()
 ) {
     val colors = LocalAppColors.current
+    val context = LocalContext.current
     val curThreshold = thresholdFor(charStage)
     val nextThreshold = nextThresholdFor(charStage)
     val progressIntoStage = (totalPushups - curThreshold).coerceAtLeast(0)
@@ -83,15 +86,15 @@ fun HomeScreen(
                         StatCard(
                             modifier = Modifier.weight(1f),
                             icon = "💪",
-                            label = "1회 최고 기록",
-                            value = "${oneRepMax}개"
+                            label = stringResource(R.string.home_stat_one_rep_max),
+                            value = stringResource(R.string.common_count_format, oneRepMax)
                         )
-                        val rankText = nationalRankText(oneRepMax)
+                        val rankText = nationalRankText(context, oneRepMax)
                         if (rankText != null) {
                             StatCard(
                                 modifier = Modifier.weight(1f).clickable { showRankDialog = true },
                                 icon = "🏆",
-                                label = "전국 성인남자",
+                                label = stringResource(R.string.home_stat_national_rank),
                                 value = rankText
                             )
                         }
@@ -141,7 +144,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "${charStage}단계 · ${STAGE_NAMES[charStage]} ›",
+                    text = stringResource(R.string.home_stage_label_format, charStage, stageName(charStage)),
                     color = colors.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -158,15 +161,22 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("${charStage}단계", color = colors.textSub, fontSize = 13.sp)
                         Text(
-                            text = "레벨업까지 ${remaining}개",
+                            stringResource(R.string.home_stage_short_format, charStage),
+                            color = colors.textSub,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = stringResource(R.string.home_next_level_remaining_format, remaining),
                             color = colors.accent,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
-                            text = "${(charStage + 1).coerceAtMost(10)}단계 🔒",
+                            text = stringResource(
+                                R.string.home_next_stage_locked_format,
+                                (charStage + 1).coerceAtMost(10)
+                            ),
                             color = colors.textSub,
                             fontSize = 13.sp
                         )
@@ -185,7 +195,7 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "${pct}%",
+                                text = stringResource(R.string.home_progress_percent_format, pct),
                                 color = Color(0xFF1A1000),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.ExtraBold
@@ -207,7 +217,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                BtnPrimary(text = "푸쉬업 시작 💪", onClick = onStartWorkout)
+                BtnPrimary(text = stringResource(R.string.home_start_workout), onClick = onStartWorkout)
             }
 
             AdBanner()
@@ -236,7 +246,7 @@ private fun StreakBadge(streak: Int, modifier: Modifier = Modifier) {
     ) {
         Text("🔥", fontSize = 12.sp, lineHeight = 14.sp)
         Text(
-            text = "${streak}일 연속",
+            text = stringResource(R.string.home_streak_format, streak),
             color = Color.White,
             fontSize = 12.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -263,4 +273,3 @@ private fun StatCard(modifier: Modifier = Modifier, icon: String, label: String,
         Text(text = value, color = colors.accent, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
-

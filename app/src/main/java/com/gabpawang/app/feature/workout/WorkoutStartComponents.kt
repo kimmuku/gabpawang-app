@@ -11,19 +11,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Yellow
 
-internal data class ModeOption(val id: String, val emoji: String, val title: String, val desc: String)
+/** Mode option metadata. Title and description are resource IDs to support i18n. */
+internal data class ModeOption(
+    val id: String,
+    val emoji: String,
+    val titleResId: Int,
+    val descResId: Int
+)
 
-internal val modes = listOf(
-    ModeOption("free", "🔥", "자유 모드", "원하는 만큼 운동하세요"),
-    ModeOption("target", "🎯", "목표 모드", "세트별 목표 개수 설정"),
-    ModeOption("timed", "⏱️", "타임어택", "시간 설정 후 최대 횟수 측정"),
-    ModeOption("challenge", "💯", "챌린지 모드", "100개 한 번에 도전")
+internal val modes: List<ModeOption> = listOf(
+    ModeOption("free", "🔥", R.string.workout_mode_free_title, R.string.workout_mode_free_desc),
+    ModeOption("target", "🎯", R.string.workout_mode_target_title, R.string.workout_mode_target_desc),
+    ModeOption("timed", "⏱️", R.string.workout_mode_timed_title, R.string.workout_mode_timed_desc),
+    ModeOption("challenge", "💯", R.string.workout_mode_challenge_title, R.string.workout_mode_challenge_desc),
+    ModeOption("udt", "🪖", R.string.workout_mode_udt_title, R.string.workout_mode_udt_desc)
 )
 
 @Composable
@@ -45,13 +54,13 @@ internal fun ModeCard(option: ModeOption, selected: Boolean, onClick: () -> Unit
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = option.title,
+                text = stringResource(option.titleResId),
                 color = if (selected) colors.accent else colors.textPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = option.desc, color = colors.textSub, fontSize = 12.sp)
+            Text(text = stringResource(option.descResId), color = colors.textSub, fontSize = 12.sp)
         }
     }
 }
@@ -87,6 +96,30 @@ internal fun PresetChip(text: String, onClick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(text = text, color = colors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+internal fun StepBtn(
+    text: String,
+    modifier: Modifier = Modifier,
+    accent: Boolean = true,
+    onClick: () -> Unit
+) {
+    val colors = LocalAppColors.current
+    val bg = if (accent) Yellow else colors.bgCard
+    val fg = if (accent) Color.Black else colors.textPrimary
+    val borderColor = if (accent) Yellow else colors.borderCard
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(bg)
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = text, color = fg, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 

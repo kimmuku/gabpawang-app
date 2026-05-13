@@ -12,10 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gabpawang.app.R
 import com.gabpawang.app.ui.theme.LocalAppColors
 import com.gabpawang.app.ui.theme.Yellow
 import java.text.SimpleDateFormat
@@ -38,14 +40,24 @@ internal fun MiniCalendar(
     val month = cal.get(Calendar.MONTH)
     val today = cal.get(Calendar.DAY_OF_MONTH)
     val maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-    val monthLabel = remember {
-        SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(cal.time)
+    val monthFmtPattern = stringResource(R.string.calendar_month_format)
+    val monthLabel = remember(monthFmtPattern) {
+        SimpleDateFormat(monthFmtPattern, Locale.getDefault()).format(cal.time)
     }
     val firstDayOfWeek = remember {
         Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1) }
             .get(Calendar.DAY_OF_WEEK) - 1
     }
     val fmt = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val weekdayLabels = listOf(
+        stringResource(R.string.weekday_sun),
+        stringResource(R.string.weekday_mon),
+        stringResource(R.string.weekday_tue),
+        stringResource(R.string.weekday_wed),
+        stringResource(R.string.weekday_thu),
+        stringResource(R.string.weekday_fri),
+        stringResource(R.string.weekday_sat)
+    )
 
     fun dateStr(day: Int): String {
         val c = Calendar.getInstance(); c.set(year, month, day); return fmt.format(c.time)
@@ -64,7 +76,7 @@ internal fun MiniCalendar(
             modifier = Modifier.padding(bottom = 1.dp)
         )
         Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("일", "월", "화", "수", "목", "금", "토").forEach { label ->
+            weekdayLabels.forEach { label ->
                 Text(
                     text = label, color = colors.textSub, fontSize = 7.sp,
                     textAlign = TextAlign.Center,

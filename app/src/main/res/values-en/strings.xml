@@ -1,0 +1,371 @@
+<resources>
+    <string name="app_name">GabpaKing</string>
+
+    <!-- ============================================================ -->
+    <!-- Common -->
+    <!-- ============================================================ -->
+    <string name="common_close">Close</string>
+    <string name="common_save">Save</string>
+    <string name="common_back">Back</string>
+    <string name="common_next">Next</string>
+    <string name="common_start">Start</string>
+    <string name="common_confirm">OK</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_continue">Continue</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_count_unit">reps</string>
+    <string name="common_count_format">%1$d reps</string>
+    <string name="common_times_unit">reps</string>
+    <string name="common_times_format">%1$d reps</string>
+    <string name="common_minutes_format">%1$d min</string>
+
+    <!-- ============================================================ -->
+    <!-- Permission / Status / Error screens -->
+    <!-- ============================================================ -->
+    <string name="permission_camera_required">Camera permission required</string>
+    <string name="permission_allow">Allow</string>
+    <string name="downloading_title">Downloading BlazePose model</string>
+    <string name="downloading_subtitle">First-time setup only (~9 MB)</string>
+    <string name="downloading_progress">%1$d%%</string>
+    <string name="error_title">Error</string>
+    <string name="error_model_load_failed">Failed to load model</string>
+
+    <!-- ============================================================ -->
+    <!-- ViewModel phase labels -->
+    <!-- ============================================================ -->
+    <string name="phase_ready">Ready</string>
+    <string name="phase_warming_format">Warming up... %1$d%%</string>
+    <string name="phase_up">UP ↑</string>
+    <string name="phase_down">DOWN ↓</string>
+
+    <!-- ============================================================ -->
+    <!-- Home screen -->
+    <!-- ============================================================ -->
+    <string name="home_stat_one_rep_max">Personal Record</string>
+    <string name="home_stat_national_rank">Korean Adults (M)</string>
+    <string name="home_stage_label_format">Stage %1$d · %2$s ›</string>
+    <string name="home_stage_short_format">Stage %1$d</string>
+    <string name="home_next_level_remaining_format">%1$d to next level</string>
+    <string name="home_next_stage_locked_format">Stage %1$d 🔒</string>
+    <string name="home_progress_percent_format">%1$d%%</string>
+    <string name="home_start_workout">Start Push-ups 💪</string>
+    <string name="home_streak_format">%1$d day streak</string>
+
+    <!-- ============================================================ -->
+    <!-- Rank dialog (HomeRankDialog) -->
+    <!-- ============================================================ -->
+    <string name="rank_dialog_title">🏆 Korean Adult Male Push-up Records</string>
+    <string name="rank_dialog_subtitle">Estimated distribution of 1-rep max push-ups for Korean adult males</string>
+    <string name="rank_dialog_col_record">1-Rep Max</string>
+    <string name="rank_dialog_col_rank">National Rank</string>
+    <string name="rank_dialog_row_format">%1$d or more</string>
+    <string name="rank_dialog_disclaimer">* Reference estimate only — not official statistics.</string>
+
+    <!-- National rank text values (from AppState.nationalRankText) -->
+    <string name="rank_top_0_2">Top approx. 0.2%%</string>
+    <string name="rank_top_0_3">Top approx. 0.3%%</string>
+    <string name="rank_top_0_5">Top approx. 0.5%%</string>
+    <string name="rank_top_0_8">Top approx. 0.8%%</string>
+    <string name="rank_top_1">Top approx. 1%%</string>
+    <string name="rank_top_1_5">Top approx. 1.5%%</string>
+    <string name="rank_top_2_5">Top approx. 2.5%%</string>
+    <string name="rank_top_4_5">Top approx. 4.5%%</string>
+    <string name="rank_top_7">Top approx. 7%%</string>
+    <string name="rank_top_10">Top approx. 10%%</string>
+    <string name="rank_top_14">Top approx. 14%%</string>
+    <string name="rank_top_22">Top approx. 22%%</string>
+    <string name="rank_top_32">Top approx. 32%%</string>
+    <string name="rank_top_45">Top approx. 45%%</string>
+    <string name="rank_top_57">Top approx. 57%%</string>
+    <string name="rank_top_70">Top approx. 70%%</string>
+    <string name="rank_top_85">Top approx. 85%%</string>
+    <string name="rank_top_92">Top approx. 92%%</string>
+    <string name="rank_bottom">Bottom tier</string>
+
+    <!-- ============================================================ -->
+    <!-- Mini calendar / weekday labels -->
+    <!-- ============================================================ -->
+    <string name="calendar_month_format">MMMM yyyy</string>
+    <string name="calendar_md_format">MMM d</string>
+    <string name="calendar_day_format">%1$d/%2$d</string>
+    <string name="weekday_sun">Sun</string>
+    <string name="weekday_mon">Mon</string>
+    <string name="weekday_tue">Tue</string>
+    <string name="weekday_wed">Wed</string>
+    <string name="weekday_thu">Thu</string>
+    <string name="weekday_fri">Fri</string>
+    <string name="weekday_sat">Sat</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout start screen -->
+    <!-- ============================================================ -->
+    <string name="workout_start_title">Start Push-ups</string>
+    <string name="workout_start_mode_select">Select Mode</string>
+    <string name="workout_start_time">Duration</string>
+    <string name="workout_start_custom_set">Custom</string>
+    <string name="workout_start_sets_label">Sets</string>
+    <string name="workout_start_per_set_count">Reps per Set</string>
+    <string name="workout_start_set_index_format">Set %1$d</string>
+    <string name="workout_start_camera_guide">Camera Guide</string>
+    <string name="workout_start_camera_guide_cd">Camera guide</string>
+
+    <!-- Workout mode display labels -->
+    <string name="workout_mode_free">Free</string>
+    <string name="workout_mode_target">Target</string>
+    <string name="workout_mode_timed">Time Attack</string>
+    <string name="workout_mode_challenge">Challenge 100</string>
+
+    <!-- Workout mode option cards -->
+    <string name="workout_mode_free_title">Free Mode</string>
+    <string name="workout_mode_free_desc">Do as many as you want</string>
+    <string name="workout_mode_target_title">Target Mode</string>
+    <string name="workout_mode_target_desc">Set reps per set</string>
+    <string name="workout_mode_timed_title">Time Attack</string>
+    <string name="workout_mode_timed_desc">Max reps in fixed time</string>
+    <string name="workout_mode_challenge_title">Challenge Mode</string>
+    <string name="workout_mode_challenge_desc">100 in one go</string>
+    <string name="workout_mode_udt_title">UDT Push-up</string>
+    <string name="workout_mode_udt_desc">Paced 3-second cycle with audio cues</string>
+    <string name="workout_start_udt_target">Target reps</string>
+    <string name="udt_phase_down">Down</string>
+    <string name="udt_phase_up">Up</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout ready view -->
+    <!-- ============================================================ -->
+    <string name="ready_title">Camera Loading</string>
+    <string name="ready_subtitle">Get into push-up position and make sure your shoulders are visible.</string>
+    <string name="ready_mode_format">Mode: %1$s</string>
+    <string name="ready_start_button">Start Workout 💪</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout running view -->
+    <!-- ============================================================ -->
+    <string name="workout_clock_format">MMM d (EEE) HH:mm:ss</string>
+    <string name="workout_accumulated_and_next_level">Total %1$d  /  Next level %2$d</string>
+    <string name="workout_set_history_format">Set %1$d: %2$d</string>
+    <string name="workout_pose_prompt">Get into position</string>
+    <string name="workout_seconds_until_start">until start</string>
+    <string name="workout_rest_title">Rest Time</string>
+    <string name="workout_seconds_until_next_set">until next set</string>
+    <string name="workout_start_now">Start now ▶</string>
+    <string name="workout_extend_rest">+30s rest</string>
+    <string name="workout_save_and_home">Save &amp; Home</string>
+    <string name="workout_give_up">Give Up</string>
+    <string name="workout_stop">Stop</string>
+    <string name="workout_complete_set">Set Done ✓</string>
+    <string name="workout_finish_all">Finish Workout</string>
+    <string name="workout_counting_ready">Ready to count</string>
+    <string name="workout_counting_waiting">Waiting to start counting</string>
+    <string name="workout_counting_with_phase_format">%1$s  ·  %2$s</string>
+    <string name="workout_remaining_time">Time Left</string>
+    <string name="workout_time_format">%1$d:%2$02d</string>
+    <string name="workout_completed_count">reps done</string>
+    <string name="workout_set_remaining_count_format">Set %1$d remaining</string>
+    <string name="workout_set_label_format">Set %1$d</string>
+    <string name="workout_challenge_100">100-Rep Challenge</string>
+
+    <!-- ============================================================ -->
+    <!-- Workout result screen -->
+    <!-- ============================================================ -->
+    <string name="result_title">Workout Complete! 🎉</string>
+    <string name="result_subtitle">Check today\'s record</string>
+    <string name="result_label_sets">Sets</string>
+    <string name="result_label_duration">Duration</string>
+    <string name="result_label_total">Total Reps</string>
+    <string name="result_section_per_set">Per-Set Record</string>
+    <string name="result_ai_measured_format">AI count: %1$d</string>
+    <string name="result_evolution_progress">Evolution Progress</string>
+    <string name="result_gained_format">+%1$d</string>
+    <string name="result_stage_label_format">Stage %1$d · %2$s</string>
+    <string name="result_remaining_to_next_format">%1$d to next</string>
+    <string name="result_save_button">Save Record</string>
+    <string name="result_home_button">Back to Home</string>
+    <string name="result_set_index_format">Set %1$d</string>
+    <string name="result_set_count_format">%1$d</string>
+
+    <!-- ============================================================ -->
+    <!-- Level up screen -->
+    <!-- ============================================================ -->
+    <string name="levelup_header">⚡ Stage Up!</string>
+    <string name="levelup_stage_format">Stage %1$d Reached!</string>
+    <string name="levelup_threshold_format">You\'ve crossed %1$d total reps!</string>
+    <string name="levelup_continue">Keep Growing 🚀</string>
+
+    <!-- ============================================================ -->
+    <!-- Record screen -->
+    <!-- ============================================================ -->
+    <string name="record_title">Records</string>
+    <string name="record_no_workout">No workout record</string>
+    <string name="record_day_total">Daily Total  </string>
+    <string name="record_day_total_value_format">%1$d</string>
+    <string name="record_set_col_format">Set %1$d</string>
+    <string name="record_total_col">Total</string>
+    <string name="record_session_index_format">Workout %1$d</string>
+    <string name="record_reps_format">%1$d</string>
+    <string name="record_dash">-</string>
+    <string name="record_streak_active_format">%1$d-day streak!</string>
+    <string name="record_streak_inactive">Start today\'s workout!</string>
+    <string name="record_streak_keep_going">Keep it up</string>
+
+    <!-- ============================================================ -->
+    <!-- Settings screen -->
+    <!-- ============================================================ -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_workout">Workout</string>
+    <string name="settings_voice_count">Voice Count</string>
+    <string name="settings_background_music">Background Music</string>
+    <string name="settings_section_app">App</string>
+    <string name="settings_light_mode">Light Mode</string>
+    <string name="settings_english">English</string>
+    <string name="settings_language">Language</string>
+    <string name="dialog_language_title">Select Language</string>
+    <string name="settings_section_payment">Purchase</string>
+    <string name="settings_remove_ads_label">🚫 Remove Ads</string>
+    <string name="settings_remove_ads_active">Active ✓</string>
+    <string name="settings_remove_ads_format">Remove Ads (%1$s)</string>
+    <string name="settings_remove_ads_icon">🚫</string>
+    <string name="settings_section_support">Support</string>
+    <string name="settings_report_issue">Report Issue</string>
+    <string name="settings_report_issue_icon">📢</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_version_value">1.0.0</string>
+    <string name="billing_fallback_price">$4.99</string>
+
+    <!-- ============================================================ -->
+    <!-- Feedback screen -->
+    <!-- ============================================================ -->
+    <string name="feedback_title">Report Issue</string>
+    <string name="feedback_prompt">What went wrong?</string>
+    <string name="feedback_placeholder">Tell us what you experienced.</string>
+    <string name="feedback_length_format">%1$d / %2$d</string>
+    <string name="feedback_send">Send</string>
+    <string name="feedback_failed">Failed to send. Please try again later.</string>
+    <string name="feedback_done_title">Thanks for your feedback!</string>
+    <string name="feedback_done_subtitle">We\'ll improve quickly.</string>
+
+    <!-- ============================================================ -->
+    <!-- Character screen -->
+    <!-- ============================================================ -->
+    <string name="character_title">My Gabpa</string>
+    <string name="character_total_format">Total %1$d</string>
+    <string name="character_stage_label_format">Stage %1$d · %2$s</string>
+    <string name="character_next_remaining_format">%1$d to next stage</string>
+    <string name="character_done">✅ Achieved</string>
+    <string name="character_locked_format">🔒 Unlocks at %1$d total</string>
+    <string name="character_roadmap">Evolution Roadmap</string>
+    <string name="character_row_stage_format">Stage %1$d · %2$s</string>
+    <string name="character_row_threshold_format">Total %1$d or more</string>
+    <string name="character_cd_format">Stage %1$d character</string>
+
+    <!-- ============================================================ -->
+    <!-- Challenge screen -->
+    <!-- ============================================================ -->
+    <string name="challenge_title">Challenges</string>
+    <string name="challenge_subtitle">Take on challenges and earn rewards 🎁</string>
+    <string name="challenge_progress_format">%1$d / %2$d</string>
+    <string name="challenge_percent_format">%1$d%%</string>
+    <string name="challenge_reward_format">🎁 Reward: %1$s</string>
+
+    <string name="challenge_100_title">100-Rep Challenge</string>
+    <string name="challenge_100_desc">Knock out 100 in one go!</string>
+    <string name="challenge_100_reward">Gold Badge</string>
+    <string name="challenge_30day_title">30-Day Challenge</string>
+    <string name="challenge_30day_desc">Workout 30 days in a row</string>
+    <string name="challenge_30day_reward">Diamond Badge</string>
+    <string name="challenge_speed_title">Speed Challenge</string>
+    <string name="challenge_speed_desc">50 reps in 5 minutes</string>
+    <string name="challenge_speed_reward">Speed Badge</string>
+
+    <!-- ============================================================ -->
+    <!-- Notification screen -->
+    <!-- ============================================================ -->
+    <string name="notif_title">Notifications</string>
+    <string name="notif_unread_format">%1$d new</string>
+
+    <string name="notif_levelup_title">Stage Up!</string>
+    <string name="notif_levelup_body">You reached Stage 3 — Regular Athlete</string>
+    <string name="notif_levelup_time">Just now</string>
+    <string name="notif_streak_title">12-day streak</string>
+    <string name="notif_streak_body">Don\'t miss today\'s workout!</string>
+    <string name="notif_streak_time">1 hour ago</string>
+    <string name="notif_overtake_title">A friend just passed you</string>
+    <string name="notif_overtake_body">Minsoo took #1 with 1240 reps</string>
+    <string name="notif_overtake_time">Today 9:15 AM</string>
+    <string name="notif_challenge_title">100-Rep Challenge</string>
+    <string name="notif_challenge_body">A new challenge has begun</string>
+    <string name="notif_challenge_time">Yesterday</string>
+    <string name="notif_reminder_title">Workout Reminder</string>
+    <string name="notif_reminder_body">Time for today\'s workout!</string>
+    <string name="notif_reminder_time">Yesterday</string>
+
+    <!-- ============================================================ -->
+    <!-- Tutorial / Onboarding -->
+    <!-- ============================================================ -->
+    <string name="tutorial_start">Get Started 💪</string>
+    <string name="tutorial_image_cd">GabpaKing character guide</string>
+
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_start">Get Started</string>
+    <string name="onboarding_slide_1_title">Evolve through push-ups</string>
+    <string name="onboarding_slide_1_desc">AI analyzes your form and auto-counts every push-up.</string>
+    <string name="onboarding_slide_2_title">9 stages of evolution</string>
+    <string name="onboarding_slide_2_desc">From slim to GabpaKing — your character evolves with your workouts.</string>
+    <string name="onboarding_slide_3_title">Compete with friends</string>
+    <string name="onboarding_slide_3_desc">Join challenges and share your records with friends.</string>
+
+    <!-- Signup screen -->
+    <string name="signup_title">Create Account</string>
+    <string name="signup_subtitle">Keep your records safe</string>
+    <string name="signup_kakao">Continue with Kakao</string>
+    <string name="signup_google">Continue with Google</string>
+    <string name="signup_naver">Continue with Naver</string>
+    <string name="signup_email_show">Sign up with email</string>
+    <string name="signup_email_hide">Close</string>
+    <string name="signup_nickname">Nickname</string>
+    <string name="signup_email">Email</string>
+    <string name="signup_password">Password</string>
+    <string name="signup_submit">Sign Up</string>
+    <string name="signup_guest">Continue as Guest</string>
+    <string name="guest_sheet_title">Guest Mode</string>
+    <string name="guest_sheet_body">Records are saved on this device only. They may be lost if you uninstall the app or change devices.</string>
+
+    <!-- ============================================================ -->
+    <!-- Bottom navigation -->
+    <!-- ============================================================ -->
+    <string name="nav_home">Home</string>
+    <string name="nav_record">Records</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- Stage names / subtitles (indexed from 1; index 0 unused) -->
+    <!-- ============================================================ -->
+    <string-array name="stage_names">
+        <item></item>
+        <item>Beginner\'s Start</item>
+        <item>Motivated Rookie</item>
+        <item>Trainee</item>
+        <item>Solid Foundation</item>
+        <item>Awakened Chest</item>
+        <item>Strong Warrior</item>
+        <item>Elite Champion</item>
+        <item>Royal Presence</item>
+        <item>Legendary Tier</item>
+        <item>Ultimate Champion!</item>
+    </string-array>
+
+    <string-array name="stage_subtitles">
+        <item></item>
+        <item>Small but brave challenger!</item>
+        <item>Getting stronger step by step!</item>
+        <item>Sweating and growing!</item>
+        <item>Building solid basics!</item>
+        <item>Chest starting to bulk up!</item>
+        <item>Ready to fight!</item>
+        <item>Everyone respects your strength!</item>
+        <item>Unrivaled presence!</item>
+        <item>The king who surpassed limits!</item>
+        <item>Push-up god! Legend complete!</item>
+    </string-array>
+</resources>
