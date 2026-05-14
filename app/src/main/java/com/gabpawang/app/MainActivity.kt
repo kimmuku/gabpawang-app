@@ -178,6 +178,7 @@ fun GabpaWangApp(
             onLanguageChange = { tag ->
                 context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
                     .edit().putString("app_language", tag).apply()
+                java.util.Locale.setDefault(java.util.Locale.forLanguageTag(tag))
                 language = tag
             },
             context = context

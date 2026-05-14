@@ -49,8 +49,8 @@ fun CharacterScreen(charStage: Int, totalPushups: Int, onBack: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
         ) {
             StatusBarSpacer()
             BackHeader(

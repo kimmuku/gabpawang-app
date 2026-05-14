@@ -62,24 +62,24 @@
     <string name="rank_dialog_disclaimer">* 공식 통계가 아닌 참고용 추정치입니다.</string>
 
     <!-- National rank text values (from AppState.nationalRankText) -->
-    <string name="rank_top_0_2">상위 약 0.2%%</string>
-    <string name="rank_top_0_3">상위 약 0.3%%</string>
-    <string name="rank_top_0_5">상위 약 0.5%%</string>
-    <string name="rank_top_0_8">상위 약 0.8%%</string>
-    <string name="rank_top_1">상위 약 1%%</string>
-    <string name="rank_top_1_5">상위 약 1.5%%</string>
-    <string name="rank_top_2_5">상위 약 2.5%%</string>
-    <string name="rank_top_4_5">상위 약 4.5%%</string>
-    <string name="rank_top_7">상위 약 7%%</string>
-    <string name="rank_top_10">상위 약 10%%</string>
-    <string name="rank_top_14">상위 약 14%%</string>
-    <string name="rank_top_22">상위 약 22%%</string>
-    <string name="rank_top_32">상위 약 32%%</string>
-    <string name="rank_top_45">상위 약 45%%</string>
-    <string name="rank_top_57">상위 약 57%%</string>
-    <string name="rank_top_70">상위 약 70%%</string>
-    <string name="rank_top_85">상위 약 85%%</string>
-    <string name="rank_top_92">상위 약 92%%</string>
+    <string name="rank_top_0_2">상위 약 0.2%</string>
+    <string name="rank_top_0_3">상위 약 0.3%</string>
+    <string name="rank_top_0_5">상위 약 0.5%</string>
+    <string name="rank_top_0_8">상위 약 0.8%</string>
+    <string name="rank_top_1">상위 약 1%</string>
+    <string name="rank_top_1_5">상위 약 1.5%</string>
+    <string name="rank_top_2_5">상위 약 2.5%</string>
+    <string name="rank_top_4_5">상위 약 4.5%</string>
+    <string name="rank_top_7">상위 약 7%</string>
+    <string name="rank_top_10">상위 약 10%</string>
+    <string name="rank_top_14">상위 약 14%</string>
+    <string name="rank_top_22">상위 약 22%</string>
+    <string name="rank_top_32">상위 약 32%</string>
+    <string name="rank_top_45">상위 약 45%</string>
+    <string name="rank_top_57">상위 약 57%</string>
+    <string name="rank_top_70">상위 약 70%</string>
+    <string name="rank_top_85">상위 약 85%</string>
+    <string name="rank_top_92">상위 약 92%</string>
     <string name="rank_bottom">하위권</string>
 
     <!-- ============================================================ -->

@@ -62,24 +62,24 @@
     <string name="rank_dialog_disclaimer">* Reference estimate only — not official statistics.</string>
 
     <!-- National rank text values (from AppState.nationalRankText) -->
-    <string name="rank_top_0_2">Top approx. 0.2%%</string>
-    <string name="rank_top_0_3">Top approx. 0.3%%</string>
-    <string name="rank_top_0_5">Top approx. 0.5%%</string>
-    <string name="rank_top_0_8">Top approx. 0.8%%</string>
-    <string name="rank_top_1">Top approx. 1%%</string>
-    <string name="rank_top_1_5">Top approx. 1.5%%</string>
-    <string name="rank_top_2_5">Top approx. 2.5%%</string>
-    <string name="rank_top_4_5">Top approx. 4.5%%</string>
-    <string name="rank_top_7">Top approx. 7%%</string>
-    <string name="rank_top_10">Top approx. 10%%</string>
-    <string name="rank_top_14">Top approx. 14%%</string>
-    <string name="rank_top_22">Top approx. 22%%</string>
-    <string name="rank_top_32">Top approx. 32%%</string>
-    <string name="rank_top_45">Top approx. 45%%</string>
-    <string name="rank_top_57">Top approx. 57%%</string>
-    <string name="rank_top_70">Top approx. 70%%</string>
-    <string name="rank_top_85">Top approx. 85%%</string>
-    <string name="rank_top_92">Top approx. 92%%</string>
+    <string name="rank_top_0_2">Top 0.2%</string>
+    <string name="rank_top_0_3">Top 0.3%</string>
+    <string name="rank_top_0_5">Top 0.5%</string>
+    <string name="rank_top_0_8">Top 0.8%</string>
+    <string name="rank_top_1">Top 1%</string>
+    <string name="rank_top_1_5">Top 1.5%</string>
+    <string name="rank_top_2_5">Top 2.5%</string>
+    <string name="rank_top_4_5">Top 4.5%</string>
+    <string name="rank_top_7">Top 7%</string>
+    <string name="rank_top_10">Top 10%</string>
+    <string name="rank_top_14">Top 14%</string>
+    <string name="rank_top_22">Top 22%</string>
+    <string name="rank_top_32">Top 32%</string>
+    <string name="rank_top_45">Top 45%</string>
+    <string name="rank_top_57">Top 57%</string>
+    <string name="rank_top_70">Top 70%</string>
+    <string name="rank_top_85">Top 85%</string>
+    <string name="rank_top_92">Top 92%</string>
     <string name="rank_bottom">Bottom tier</string>
 
     <!-- ============================================================ -->

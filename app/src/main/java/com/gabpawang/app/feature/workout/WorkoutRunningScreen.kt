@@ -65,7 +65,6 @@ fun WorkoutRunningScreen(
     var countdownRemaining by remember { mutableStateOf(10) }
     var clockText by remember { mutableStateOf(currentClock(clockFormatter)) }
     val nextLevelGoal = remember(totalPushups) { nextThresholdFor(stageFor(totalPushups)) }
-    var udtCount by remember { mutableStateOf(0) }
     var udtPhase by remember { mutableStateOf("down") }
 
     val repCount by vm.repCount
@@ -135,40 +134,49 @@ fun WorkoutRunningScreen(
     }
     DisposableEffect(Unit) { onDispose { vm.reset() } }
 
-    // Pre-start countdown for all modes; non-UDT modes start pose calibration after.
+    // Pre-start countdown for all modes; all modes start pose calibration after.
     LaunchedEffect(Unit) {
         while (countdownRemaining > 0) {
             delay(1000L)
             countdownRemaining--
         }
-        if (config.mode != "udt") vm.startCalibration()
+        vm.startCalibration()
     }
 
-    // UDT paced cycle: 1.5s down → 1.5s up = 3s per rep, with audio cues.
+    // UDT paced beep cycle: every 3s play DOWN tone then UP tone. Count comes from pose detection.
     val toneGen = remember(config.mode) {
         if (config.mode == "udt") ToneGenerator(AudioManager.STREAM_MUSIC, 80) else null
     }
     DisposableEffect(toneGen) { onDispose { toneGen?.release() } }
+    val upLabel = stringResource(R.string.phase_up)
+    val downLabel = stringResource(R.string.phase_down)
     LaunchedEffect(config.mode) {
         if (config.mode != "udt") return@LaunchedEffect
         while (countdownRemaining > 0) delay(200L)
-        while (udtCount < config.udtTarget) {
+        // Wait until pose detection is calibrated and ready to count.
+        while (phase != upLabel && phase != downLabel) delay(200L)
+        while (true) {
             udtPhase = "down"
             toneGen?.startTone(ToneGenerator.TONE_CDMA_LOW_L, 200)
             delay(1500L)
             udtPhase = "up"
             toneGen?.startTone(ToneGenerator.TONE_CDMA_HIGH_L, 200)
             delay(1500L)
-            udtCount++
         }
-        onFinish(
-            WorkoutResult(
-                sets = 1,
-                total = udtCount,
-                history = listOf(udtCount),
-                durationSec = elapsedSec
+    }
+
+    // Auto-finish for UDT when target reached (count comes from pose detection)
+    LaunchedEffect(repCount) {
+        if (config.mode == "udt" && repCount >= config.udtTarget) {
+            onFinish(
+                WorkoutResult(
+                    sets = 1,
+                    total = repCount,
+                    history = listOf(repCount),
+                    durationSec = elapsedSec
+                )
             )
-        )
+        }
     }
 
     // Clock and workout timer (1Hz tick each)
@@ -213,12 +221,6 @@ fun WorkoutRunningScreen(
         }
     }
 
-    // UDT mode uses its own counter and counts up (1, 2, 3, ...).
-    LaunchedEffect(udtCount) {
-        if (voiceEnabled && config.mode == "udt" && udtCount > 0) {
-            ttsRef.value?.speak("$udtCount", TextToSpeech.QUEUE_FLUSH, null, "udt_$udtCount")
-        }
-    }
 
     // Auto-finish for timed mode at 120 seconds
     LaunchedEffect(elapsedSec) {
@@ -295,7 +297,7 @@ fun WorkoutRunningScreen(
             clockText = clockText,
             displayTotal = totalPushups + setHistory.sum() + repCount,
             nextLevelGoal = nextLevelGoal,
-            udtCount = udtCount,
+            udtCount = repCount,
             udtPhase = udtPhase,
             onExtendRest = {
                 restRemaining += 30
@@ -325,7 +327,7 @@ fun WorkoutRunningScreen(
             },
             onFinishAll = {
                 val finalHistory = when (config.mode) {
-                    "udt" -> if (udtCount > 0) listOf(udtCount) else emptyList()
+                    "udt" -> if (repCount > 0) listOf(repCount) else emptyList()
                     else -> if (repCount > 0) setHistory + repCount else setHistory
                 }
                 onFinish(
