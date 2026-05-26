@@ -157,6 +157,7 @@
     <string name="workout_finish_all">운동 완료</string>
     <string name="workout_counting_ready">카운팅 준비 완료</string>
     <string name="workout_counting_waiting">카운팅 준비 대기</string>
+    <string name="workout_start_now_prompt">운동을 시작하세요!</string>
     <string name="workout_counting_with_phase_format">%1$s  ·  %2$s</string>
     <string name="workout_remaining_time">남은 시간</string>
     <string name="workout_time_format">%1$d:%2$02d</string>

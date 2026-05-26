@@ -46,6 +46,10 @@ fun RunningView(
     onSkipRest: () -> Unit = {}
 ) {
     val colors = LocalAppColors.current
+    val upLabel = stringResource(R.string.phase_up)
+    val downLabel = stringResource(R.string.phase_down)
+    val isReady = phase == upLabel || phase == downLabel
+    val showStartPrompt = countdownRemaining == 0 && isReady && repCount == 0 && !inRest
     Column(
         modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.SpaceBetween
@@ -57,6 +61,14 @@ fun RunningView(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             CountingStatusBadge(phase = phase)
+            if (showStartPrompt) {
+                Text(
+                    text = stringResource(R.string.workout_start_now_prompt),
+                    color = GreenAccent,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
             if (clockText.isNotEmpty()) {
                 Text(
                     text = clockText,

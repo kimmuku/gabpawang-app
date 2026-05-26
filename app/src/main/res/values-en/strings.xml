@@ -157,6 +157,7 @@
     <string name="workout_finish_all">Finish Workout</string>
     <string name="workout_counting_ready">Ready to count</string>
     <string name="workout_counting_waiting">Waiting to start counting</string>
+    <string name="workout_start_now_prompt">Start your workout!</string>
     <string name="workout_counting_with_phase_format">%1$s  ·  %2$s</string>
     <string name="workout_remaining_time">Time Left</string>
     <string name="workout_time_format">%1$d:%2$02d</string>
