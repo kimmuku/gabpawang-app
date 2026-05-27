@@ -7,11 +7,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-feature android:name="android.hardware.camera.front" android:required="true" />
 
-    <!-- Allow KakaoTalk app query for login availability check -->
-    <queries>
-        <package android:name="com.kakao.talk" />
-    </queries>
-
     <application
         android:name=".GabpaApplication"
         android:allowBackup="true"
@@ -22,10 +17,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PushUpCounter">
-        <!-- Kakao SDK native app key -->
-        <meta-data
-            android:name="com.kakao.sdk.AppKey"
-            android:value="73af7802f9ee24065925157c33d9e031" />
         <!-- AdMob test App ID — replace with real ID after AdMob account setup -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
