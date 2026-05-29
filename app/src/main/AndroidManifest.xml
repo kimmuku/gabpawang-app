@@ -18,10 +18,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PushUpCounter">
-        <!-- AdMob test App ID — replace with real ID after AdMob account setup -->
+        <!-- AdMob production App ID (KAIROS org account) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-8613737163835175~4615146394" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

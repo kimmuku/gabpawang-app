@@ -10,9 +10,8 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
-// Google's official test interstitial ad unit ID — safe for development.
-// Replace with real ad unit ID after AdMob account/app setup.
-private const val TEST_INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
+// Production interstitial ad unit ID (shown every N set completions).
+private const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-8613737163835175/9095796972"
 
 // Show one interstitial every N completed sets.
 private const val SET_INTERVAL = 3
@@ -33,7 +32,7 @@ object InterstitialAdManager {
         loading = true
         InterstitialAd.load(
             context.applicationContext,
-            TEST_INTERSTITIAL_AD_UNIT_ID,
+            INTERSTITIAL_AD_UNIT_ID,
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(loaded: InterstitialAd) {

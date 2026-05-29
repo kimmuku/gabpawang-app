@@ -100,9 +100,21 @@ object BillingManager {
             .setProductType(BillingClient.ProductType.INAPP)
             .build()
         client?.queryPurchasesAsync(params) { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                purchases.forEach { handlePurchase(it) }
+            if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+                Log.w(TAG, "Query purchases failed: ${result.debugMessage}")
+                return@queryPurchasesAsync
             }
+            // Detect refund/revocation: if remove_ads is no longer in active
+            // purchases but cached as ad-free, demote the flag so ads reappear.
+            val hasActiveAdFree = purchases.any {
+                it.products.contains(PRODUCT_ID) &&
+                    it.purchaseState == Purchase.PurchaseState.PURCHASED
+            }
+            if (!hasActiveAdFree && _isAdFree.value) {
+                Log.d(TAG, "remove_ads no longer active — restoring ads")
+                setAdFree(false)
+            }
+            purchases.forEach { handlePurchase(it) }
         }
     }
 
@@ -127,16 +139,27 @@ object BillingManager {
 
     private fun handlePurchase(purchase: Purchase) {
         if (!purchase.products.contains(PRODUCT_ID)) return
-        if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) return
-        setAdFree(true)
-        if (!purchase.isAcknowledged) {
-            val params = AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.purchaseToken)
-                .build()
-            client?.acknowledgePurchase(params) { result ->
-                if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-                    Log.w(TAG, "Acknowledge failed: ${result.debugMessage}")
+        when (purchase.purchaseState) {
+            Purchase.PurchaseState.PURCHASED -> {
+                setAdFree(true)
+                if (!purchase.isAcknowledged) {
+                    val params = AcknowledgePurchaseParams.newBuilder()
+                        .setPurchaseToken(purchase.purchaseToken)
+                        .build()
+                    client?.acknowledgePurchase(params) { result ->
+                        if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+                            Log.w(TAG, "Acknowledge failed: ${result.debugMessage}")
+                        }
+                    }
                 }
+            }
+            Purchase.PurchaseState.PENDING -> {
+                // Awaiting payment confirmation (e.g., 무통장입금) — do not grant yet.
+                Log.d(TAG, "Purchase pending: ${purchase.purchaseToken}")
+            }
+            else -> {
+                // UNSPECIFIED_STATE or unknown — treat as not entitled.
+                if (_isAdFree.value) setAdFree(false)
             }
         }
     }

@@ -12,9 +12,8 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 
-// Google's official test banner ad unit ID — safe for development.
-// Replace with real ad unit ID after AdMob account/app setup.
-private const val TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
+// Production banner ad unit ID (home/record/settings bottom banner).
+private const val BANNER_AD_UNIT_ID = "ca-app-pub-8613737163835175/4035041981"
 
 @Composable
 fun AdBanner(modifier: Modifier = Modifier) {
@@ -26,7 +25,7 @@ fun AdBanner(modifier: Modifier = Modifier) {
         factory = {
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
-                adUnitId = TEST_BANNER_AD_UNIT_ID
+                adUnitId = BANNER_AD_UNIT_ID
                 loadAd(AdRequest.Builder().build())
             }
         }
