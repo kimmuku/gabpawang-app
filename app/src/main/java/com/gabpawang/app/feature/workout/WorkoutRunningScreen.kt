@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gabpawang.app.R
@@ -52,6 +53,10 @@ fun WorkoutRunningScreen(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+    val configuration = LocalConfiguration.current
+    val ttsLocale = remember(configuration) {
+        if (configuration.locales[0].language == "en") Locale.US else Locale.KOREA
+    }
     val clockPattern = stringResource(R.string.workout_clock_format)
     val clockFormatter = remember(clockPattern) {
         DateTimeFormatter.ofPattern(clockPattern, Locale.getDefault())
@@ -70,21 +75,21 @@ fun WorkoutRunningScreen(
     val repCount by vm.repCount
     val phase by vm.phase
 
-    // TTS for voice count
+    // TTS for voice count — locale follows the app language setting (KO/EN)
     val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
-    DisposableEffect(Unit) {
+    DisposableEffect(ttsLocale) {
         var tts: TextToSpeech? = null
         var callbackFired = false
         tts = TextToSpeech(context) { status ->
             callbackFired = true
             if (status == TextToSpeech.SUCCESS) {
-                tts?.setLanguage(Locale.KOREA)
+                tts?.setLanguage(ttsLocale)
                 ttsRef.value = tts
             }
         }
         // If onInit fired synchronously (tts was null inside callback), wire it up now
         if (callbackFired && ttsRef.value == null) {
-            tts?.setLanguage(Locale.KOREA)
+            tts?.setLanguage(ttsLocale)
             ttsRef.value = tts
         }
         onDispose {
