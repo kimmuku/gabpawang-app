@@ -43,6 +43,7 @@
     <!-- ============================================================ -->
     <string name="home_stat_one_rep_max">Personal Record</string>
     <string name="home_stat_national_rank">Korean Adults (M)</string>
+    <string name="home_stat_total">Total Reps</string>
     <string name="home_stage_label_format">Stage %1$d · %2$s ›</string>
     <string name="home_stage_short_format">Stage %1$d</string>
     <string name="home_next_level_remaining_format">%1$d to next level</string>

@@ -43,6 +43,7 @@
     <!-- ============================================================ -->
     <string name="home_stat_one_rep_max">1회 최고 기록</string>
     <string name="home_stat_national_rank">전국 성인남자</string>
+    <string name="home_stat_total">누적 횟수</string>
     <string name="home_stage_label_format">%1$d단계 · %2$s ›</string>
     <string name="home_stage_short_format">%1$d단계</string>
     <string name="home_next_level_remaining_format">레벨업까지 %1$d개</string>

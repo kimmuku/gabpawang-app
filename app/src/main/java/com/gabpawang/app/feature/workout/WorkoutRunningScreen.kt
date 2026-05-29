@@ -62,7 +62,7 @@ fun WorkoutRunningScreen(
     var inRest by remember { mutableStateOf(false) }
     var restRemaining by remember { mutableStateOf(0) }
     var restTotalSec by remember { mutableStateOf(60) }
-    var countdownRemaining by remember { mutableStateOf(5) }
+    var countdownRemaining by remember { mutableStateOf(0) }
     var clockText by remember { mutableStateOf(currentClock(clockFormatter)) }
     val nextLevelGoal = remember(totalPushups) { nextThresholdFor(stageFor(totalPushups)) }
     var udtPhase by remember { mutableStateOf("down") }

@@ -76,13 +76,19 @@ fun HomeScreen(
             ) {
                 Spacer(modifier = Modifier.weight(1f))
 
-                if (oneRepMax > 0) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = "📊",
+                        label = stringResource(R.string.home_stat_total),
+                        value = stringResource(R.string.common_count_format, totalPushups)
+                    )
+                    if (oneRepMax > 0) {
                         StatCard(
                             modifier = Modifier.weight(1f),
                             icon = "💪",
@@ -99,8 +105,8 @@ fun HomeScreen(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
+                Spacer(modifier = Modifier.height(16.dp))
 
                 val transition = rememberInfiniteTransition(label = "float")
                 val offsetY by transition.animateFloat(
