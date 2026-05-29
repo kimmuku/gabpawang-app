@@ -60,6 +60,13 @@ android {
         compose = true
         buildConfig = true
     }
+    bundle {
+        language {
+            // Keep all locale resources in the base APK so the in-app language
+            // picker (KO/EN) works on devices whose system locale differs.
+            enableSplit = false
+        }
+    }
 }
 
 dependencies {

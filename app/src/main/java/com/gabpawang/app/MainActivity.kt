@@ -78,6 +78,7 @@ fun GabpaWangApp(
     cameraVm: MainViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val baseConfiguration = LocalConfiguration.current
     // Check if the user has already seen the tutorial; first-time users start on "tutorial".
     val tutorialSeen = remember {
         context.getSharedPreferences("gabpa_prefs", android.content.Context.MODE_PRIVATE)
@@ -102,15 +103,15 @@ fun GabpaWangApp(
                 .getString("app_language", null) ?: "ko"
         )
     }
-    val localizedContext = remember(language, context) {
+    val localizedContext = remember(language, context, baseConfiguration) {
         val locale = java.util.Locale.forLanguageTag(language)
-        val cfg = Configuration(context.resources.configuration)
+        val cfg = Configuration(baseConfiguration)
         cfg.setLocale(locale)
         cfg.setLocales(LocaleList(locale))
         context.createConfigurationContext(cfg)
     }
-    val localizedConfig = remember(language, context) {
-        Configuration(context.resources.configuration).apply {
+    val localizedConfig = remember(language, baseConfiguration) {
+        Configuration(baseConfiguration).apply {
             val locale = java.util.Locale.forLanguageTag(language)
             setLocale(locale)
             setLocales(LocaleList(locale))
