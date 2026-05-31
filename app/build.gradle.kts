@@ -24,8 +24,8 @@ android {
         applicationId = "co.ka2ros.gabpawang"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.7"
+        versionCode = 10
+        versionName = "1.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -65,6 +65,14 @@ android {
             // Keep all locale resources in the base APK so the in-app language
             // picker (KO/EN) works on devices whose system locale differs.
             enableSplit = false
+        }
+    }
+    packaging {
+        jniLibs {
+            // Required for 16 KB memory page size alignment on Android 15+
+            // (Pixel 8/9 and newer devices). Without this, native libs are
+            // packaged with legacy 4 KB alignment and crash on 16 KB devices.
+            useLegacyPackaging = false
         }
     }
 }
